@@ -1,6 +1,6 @@
 import time
 from typing import List
-
+from sentence_transformers import CrossEncoder
 # ====== CONFIG ======
 MAX_CONTEXT_LENGTH = 5000
 RETRY_TIMES = 3
@@ -31,9 +31,9 @@ def build_context(docs, field=None):
         # ===== lọc đúng field =====
         if field:
             if doc.metadata.get("field") == field:
-                contexts.append(doc.page_content)
+                contexts = list(set(contexts))
         else:
-            contexts.append(doc.page_content)
+            contexts = list(set(contexts))
 
     context = "\n\n".join(contexts)
 
@@ -49,7 +49,8 @@ YÊU CẦU:
 - Trả lời NGẮN GỌN, ĐÚNG TRỌNG TÂM
 - Nếu câu hỏi hỏi về 1 mục cụ thể (ví dụ: phí, hồ sơ, thời hạn) → chỉ trả lời đúng mục đó
 - Không lan man
-- Không bịa
+- CHỈ được dùng thông tin trong CONTEXT
+- KHÔNG được suy đoán ngoài
 - Nếu không có → trả lời: "Không tìm thấy thông tin"
 
 ---------------------
@@ -80,10 +81,10 @@ def is_simple_question(query):
 def detect_field(query: str):
     query = query.lower()
 
-    if "phí" in query:
-        return "Phí"
     if "lệ phí" in query:
         return "Lệ phí"
+    if "phí" in query:
+        return "Phí"
     if "thời hạn" in query:
         return "Thời hạn giải quyết"
     if "hồ sơ" in query:
@@ -119,8 +120,18 @@ def ask_rag(db, query: str, llm, fallback_llm=None):
         )
 
         docs = retriever.invoke(query)
+        if not docs:
+            retriever = db.as_retriever(search_kwargs={"k": 5})
+            docs = retriever.invoke(query)
 
         print(f"Retrieved {len(docs)} documents")
+
+        reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+        pairs = [(query, doc.page_content) for doc in docs]
+        scores = reranker.predict(pairs)
+
+        docs = [doc for _, doc in sorted(zip(scores, docs), reverse=True)]
 
         # ===== build context =====
         context = build_context(docs, field)
@@ -153,6 +164,5 @@ def ask_rag(db, query: str, llm, fallback_llm=None):
         # ===== fallback KHÔNG GỌI LLM =====
         if context:
             print("[INFO] Fallback → dùng context")
-            return context[:500]
-
+            return f"Thông tin:\n{context[:300]}"
         return "Hệ thống đang bận, vui lòng thử lại sau."

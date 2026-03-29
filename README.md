@@ -1,9 +1,21 @@
-# .DA
-# Create project
-# Create chatbot + backend
-# Model use gemini 2.5 plus & gemini 2.5 pro
-<<<<<<< HEAD
-# API key = AIzaSyA4AgV1RcYBCEaNshUj0g1v13IOPuU_P88
-=======
-# API key = AIzaSyA4AgV1RcYBCEaNshUj0g1v13IOPuU_P88
->>>>>>> ad42e00 (feat(rag): improve file search with MMR, metadata filtering, and add cross-encoder reranking)
+# RAG Chatbot Tra Cứu Thủ Tục Hành Chính
+
+## Giới thiệu
+Project xây dựng chatbot tra cứu thủ tục hành chính sử dụng mô hình RAG (Retrieval-Augmented Generation) kết hợp với Gemini.
+
+---
+
+## Tính năng
+- File search bằng vector database
+- Gemini 2.5 Flash / Pro để sinh câu trả lời
+- MMR search (tăng độ đa dạng kết quả)
+- Lọc theo metadata (field-based retrieval)
+- Chunk dữ liệu theo từng trường
+- Retry khi gọi LLM lỗi
+- Reranking với Cross-Encoder
+- Fallback search khi không có kết quả
+
+---
+
+## Kiến trúc
+- User → Retriever → Filter → Rerank → Context → Gemini → Answer

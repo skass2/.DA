@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Firebase
+.firebase/
+firebase-debug.log*
+
+# Testing & Linting
+coverage/
+.eslintcache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +30,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Môi trường
+.env

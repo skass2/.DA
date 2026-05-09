@@ -1,0 +1,12 @@
+{
+  "phí": ["lệ phí", "chi phí", "giá", "bao nhiêu tiền", "mất bao nhiêu", "tiền", "nộp tiền", "tốn tiền"],
+  "thời hạn": ["bao lâu", "mất bao lâu", "thời gian", "khi nào xong", "bao nhiêu ngày", "mấy ngày"],
+  "hồ sơ": ["giấy tờ", "cần gì", "chuẩn bị gì", "thành phần hồ sơ", "cần mang gì", "thủ tục gồm"],
+  "cách thức": ["làm như nào", "thực hiện ra sao", "cách làm", "quy trình", "nộp qua mạng", "nộp trực tiếp"],
+  "cơ quan": ["ở đâu", "nộp ở đâu", "cơ quan nào", "địa điểm", "làm ở đâu", "chỗ nào", "đến đâu"],
+  "pháp lý": ["căn cứ", "luật", "quy định", "văn bản", "thông tư", "nghị định"],
+  "trình tự": ["các bước", "quy trình thực hiện", "thứ tự làm", "bước 1", "bắt đầu từ đâu"],
+  "kết quả": ["nhận được gì", "kết quả là gì", "trả về gì", "được cấp gì", "cấp giấy gì"],
+  "điều kiện": ["yêu cầu", "cần điều kiện gì", "điều kiện gì", "được phép không", "ai cho phép"],
+  "đối tượng": ["ai được làm", "đối tượng nào", "ai áp dụng", "ai có quyền"]
+}

@@ -1,168 +1,238 @@
 import time
-from typing import List
+import json
+from collections import Counter
 from sentence_transformers import CrossEncoder
-# ====== CONFIG ======
-MAX_CONTEXT_LENGTH = 5000
-RETRY_TIMES = 3
-RETRY_DELAY = 2
+from rag.intent import handle_intent
+from rag.normalizer import normalize_query
+from rag.config import get_llm, get_fallback_llms  # Đảm bảo import factory của bạn
 
+# ===== CONFIG =====
+CACHE = {}
 
-# ====== HELPER: RETRY ======
-def call_llm_with_retry(llm, prompt: str, retries: int = RETRY_TIMES):
-    for i in range(retries):
-        try:
-            response = llm.invoke(prompt)
-            return response
-        except Exception as e:
-            print(f"[LLM ERROR] Retry {i+1}/{retries}: {e}")
-            time.sleep(RETRY_DELAY)
+# Tải dữ liệu bổ trợ
+try:
+    with open("data/entities.json", "r", encoding="utf-8") as f:
+        ENTITIES_DATA = json.load(f)
+    with open("data/synonyms.json", "r", encoding="utf-8") as f:
+        SYNONYMS_DATA = json.load(f)
+except Exception as e:
+    print(f"[FILE LOAD ERROR]: {e}")
+    ENTITIES_DATA, SYNONYMS_DATA = {}, {}
 
-    return None
-
-
-# ====== HELPER: BUILD CONTEXT ======
-def build_context(docs, field=None):
-    if not docs:
-        return ""
-
-    contexts = []
-
-    for doc in docs:
-        # ===== lọc đúng field =====
-        if field:
-            if doc.metadata.get("field") == field:
-                contexts = list(set(contexts))
-        else:
-            contexts = list(set(contexts))
-
-    context = "\n\n".join(contexts)
-
-    return context[:MAX_CONTEXT_LENGTH]
-
-
-# ====== HELPER: BUILD PROMPT ======
-def build_prompt(query: str, context: str):
-    return f"""
-Bạn là chatbot tra cứu thủ tục hành chính.
-
-YÊU CẦU:
-- Trả lời NGẮN GỌN, ĐÚNG TRỌNG TÂM
-- Nếu câu hỏi hỏi về 1 mục cụ thể (ví dụ: phí, hồ sơ, thời hạn) → chỉ trả lời đúng mục đó
-- Không lan man
-- CHỈ được dùng thông tin trong CONTEXT
-- KHÔNG được suy đoán ngoài
-- Nếu không có → trả lời: "Không tìm thấy thông tin"
-
----------------------
-CONTEXT:
-{context}
----------------------
-
-CÂU HỎI:
-{query}
-
-TRẢ LỜI:
-"""
-
-
-# ====== RULE: SIMPLE QUESTION ======
-KEYWORDS_SIMPLE = [
-    "phí", "lệ phí",
-    "thời hạn", "bao lâu",
-    "ở đâu", "cơ quan",
-    "cần gì", "hồ sơ"
-]
-
-def is_simple_question(query):
-    return any(k in query.lower() for k in KEYWORDS_SIMPLE)
-
-
-# ====== DETECT FIELD ======
-def detect_field(query: str):
+# ===== KHỞI TẠO RERANKER (Chỉ load 1 lần duy nhất để tối ưu hiệu năng) =====
+try:
+    reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    print("[RERANKER] Đã tải thành công CrossEncoder")
+except Exception as e:
+    print(f"[RERANKER INIT ERROR]: {e}")
+    reranker = None
+    
+def detect_procedure_name(query: str, history=None):
     query = query.lower()
+    
+    # Ưu tiên 1: Nếu trong lịch sử gần nhất đã nhắc tới 1 thủ tục, hãy giữ lại nó
+    if history:
+        for msg in reversed(history[-2:]): # Xem 2 tin nhắn gần nhất
+            content = msg['content'].lower()
+            for proc_name in ENTITIES_DATA.keys():
+                if proc_name.lower() in content:
+                    return proc_name
 
-    if "lệ phí" in query:
-        return "Lệ phí"
-    if "phí" in query:
-        return "Phí"
-    if "thời hạn" in query:
-        return "Thời hạn giải quyết"
-    if "hồ sơ" in query:
-        return "Thành phần hồ sơ"
-    if "trình tự" in query:
-        return "Trình tự thực hiện"
-    if "cơ quan" in query:
-        return "Cơ quan thực hiện"
+    # Ưu tiên 2: Tìm kiếm từ khóa như cũ
+    best_match = None
+    max_score = 0
+    for proc_name, keywords in ENTITIES_DATA.items():
+        score = 0
+        for k in keywords:
+            if str(k).lower() in query:
+                score += len(str(k).split())
+        if score > max_score:
+            max_score = score
+            best_match = proc_name
+            
+    return best_match if max_score >= 2 else None
 
+def detect_field(query: str):
+    q = query.lower()
+    field_map = {
+        "phí": ["Phí", "Lệ phí"],
+        "thời hạn": ["Thời hạn giải quyết"],
+        "hồ sơ": ["Thành phần hồ sơ"],
+        "cách thức": ["Cách thức thực hiện"],
+        "cơ quan": ["Cơ quan thực hiện"],
+        "pháp lý": ["Căn cứ pháp lý", "Cơ quan ban hành", "Cơ quan phối hợp"],
+        "trình tự": ["Trình tự thực hiện"],
+        "kết quả": ["Kết quả thực hiện"],
+        "điều kiện": ["Yêu cầu điều kiện"],
+        "đối tượng": ["Đối tượng thực hiện"]
+    }
+    for key, keywords in SYNONYMS_DATA.items():
+        if any(k in q for k in keywords):
+            return field_map.get(key)
     return None
 
+# ===== HÀM THỰC THI LLM VỚI CƠ CHẾ FALLBACK =====
+def smart_llm_invoke(prompt: str):
+    """
+    Thử gọi Model chính, nếu lỗi 429 hoặc lỗi kết nối 
+    thì tự động duyệt qua danh sách Fallback.
+    """
+    primary = get_llm()
+    fallbacks = get_fallback_llms()
+    all_models = [primary] + fallbacks
 
-# ====== MAIN RAG FUNCTION ======
-def ask_rag(db, query: str, llm, fallback_llm=None):
-    context = ""
+    for model in all_models:
+        if model is None:
+            continue
+        
+        model_name = getattr(model, 'model', 'Ollama/OpenRouter')
+        try:
+            print(f"[*] Đang thử Model: {model_name}")
+            res = model.invoke(prompt)
+            return res.content.strip()
+        except Exception as e:
+            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                print(f"[!] {model_name} hết hạn mức (429). Chuyển model...")
+            else:
+                print(f"[!] Lỗi {model_name}: {e}")
+            continue # Thử model tiếp theo trong list
+            
+    return None
+
+def ask_rag(db, query, session_id, history=None):
+    if db is None:
+        return "Hệ thống cơ sở dữ liệu hiện không khả dụng. Vui lòng thử lại sau."
+
+    raw_query = query
+    
+    # 1. Intent xã giao
+    intent_answer = handle_intent(raw_query)
+    if intent_answer and len(raw_query.split()) < 5:
+        return intent_answer
+
+    # 2. Xử lý ngữ cảnh & Rewrite (Sử dụng Smart LLM)
+    if history and len(history) > 0:
+        history_str = "\n".join([f"{h['role']}: {h['content']}" for h in history[-3:]])
+        rewrite_prompt = f"""Bạn là một chuyên gia ngôn ngữ học. Dựa vào lịch sử hội thoại, hãy viết lại câu hỏi mới nhất của người dùng thành một câu hỏi duy nhất, độc lập và đầy đủ ý nghĩa.
+TUYỆT ĐỐI KHÔNG TRẢ LỜI CÂU HỎI, KHÔNG GIẢI THÍCH GÌ THÊM. CHỈ TRẢ VỀ CÂU HỎI ĐÃ ĐƯỢC VIẾT LẠI.
+
+LỊCH SỬ:
+{history_str}
+CÂU HỎI MỚI: {raw_query}
+
+CÂU HỎI VIẾT LẠI:"""
+        
+        rewritten = smart_llm_invoke(rewrite_prompt)
+        if rewritten:
+            query = rewritten
+            print(f"[REWRITE]: {query}")
+
+    # 3. Chuẩn hóa & Cache
+    query = normalize_query(query)
+    query_key = query.lower().strip()
+    if query_key in CACHE:
+        print("[CACHE HIT]")
+        return CACHE[query_key]
+
+    # Xóa Cache nếu dung lượng quá lớn để tránh rò rỉ bộ nhớ (Memory Leak)
+    if len(CACHE) > 1000:
+        CACHE.clear()
 
     try:
-        print("\n===== NEW QUERY =====")
-        print("Query:", query)
+        print(f"\n===== XỬ LÝ TRUY VẤN: {query} =====")
+        
+        # 4. Nhận diện mục tiêu
+        # Thay đổi dòng này trong hàm ask_rag:
+        detected_proc = detect_procedure_name(query, history=history)
+        field = detect_field(raw_query)
 
-        # ===== detect field =====
-        field = detect_field(query)
-        print("Detected field:", field)
+        # 5. Retrieval
+        search_kwargs = {"k": 15}
+        if detected_proc:
+            search_kwargs["filter"] = {"name": detected_proc}
+            print(f"[SYSTEM]: Đã khóa mục tiêu vào: {detected_proc}")
 
-        # ===== retriever =====
-        retriever = db.as_retriever(
-            search_type="mmr",
-            search_kwargs={
-                "k": 5,
-                "fetch_k": 10,
-                "filter": {"field": field} if field else {}
-            }
-        )
-
+        retriever = db.as_retriever(search_kwargs=search_kwargs)
         docs = retriever.invoke(query)
+
         if not docs:
-            retriever = db.as_retriever(search_kwargs={"k": 5})
-            docs = retriever.invoke(query)
+            return "Xin lỗi, tôi không tìm thấy thông tin phù hợp trong cơ sở dữ liệu."
 
-        print(f"Retrieved {len(docs)} documents")
+        # 6. Rerank
+        if reranker:
+            pairs = [(query, d.page_content) for d in docs]
+            scores = reranker.predict(pairs)
+            for i, d in enumerate(docs):
+                d.metadata['score'] = scores[i]
+            docs = sorted(docs, key=lambda x: x.metadata['score'], reverse=True)
+        else:
+            # Fallback nếu không có reranker (chạy tạm không chấm điểm)
+            for d in docs:
+                d.metadata['score'] = 1.0
 
-        reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+        # 7. Chọn thủ tục thắng cuộc
+        if not detected_proc:
+            proc_scores = {}
+            for d in docs:
+                p_name = d.metadata.get("name")
+                if p_name:
+                    proc_scores[p_name] = proc_scores.get(p_name, 0) + d.metadata['score']
+            main_name = max(proc_scores, key=proc_scores.get) if proc_scores else "Thủ tục không xác định"
+        else:
+            main_name = detected_proc
 
-        pairs = [(query, doc.page_content) for doc in docs]
-        scores = reranker.predict(pairs)
+        print(f"[WINNER]: {main_name}")
 
-        docs = [doc for _, doc in sorted(zip(scores, docs), reverse=True)]
+        # 8. Lọc Chunk theo Winner và Field
+        final_docs = [d for d in docs if d.metadata.get("name") == main_name]
+        if field:
+            # field lúc này là một list các trường tương ứng (Ví dụ: ["Phí", "Lệ phí"])
+            field_docs = [d for d in final_docs if d.metadata.get("field") in field]
+            if field_docs:
+                final_docs = field_docs
+                print(f"[FIELD FILTER]: Đã lọc theo mục {field}")
 
-        # ===== build context =====
-        context = build_context(docs, field)
+        # 9. Tổng hợp Context
+        seen = set()
+        context_chunks = []
+        for d in final_docs:
+            if d.page_content not in seen:
+                context_chunks.append(d.page_content)
+                seen.add(d.page_content)
+                # Chỉ lấy tối đa 5 chunks tốt nhất (sau Rerank) để LLM không bị ngợp và ảo giác
+                if len(context_chunks) >= 5:
+                    break
+        
+        context = "\n\n".join(context_chunks)
+        print(f"Context nè: {context}")
+        
+        # 10. Generate (Sử dụng Smart LLM với Fallback)
+        prompt = f"""Bạn là công chức tiếp nhận hồ sơ. CHỈ trả lời dựa trên CONTEXT.
 
-        print("Context preview:", context[:500])
+YÊU CẦU CỰC ĐOAN:
+1. KHÔNG được nói "liên hệ cơ quan chức năng" nếu trong CONTEXT đã có quy định.
+2. KHÔNG được trả lời chung chung. Nếu hỏi về hồ sơ, phải liệt kê rõ Tên giấy tờ, Số lượng.
+3. Nếu CONTEXT có các thông số kỹ thuật (khoảng cách, mét, ngày, lý trình), BẮT BUỘC phải đưa vào câu trả lời.
+4. Nếu KHÔNG thấy thông tin trong CONTEXT, chỉ nói: "Dữ liệu hiện tại không đề cập". Tuyệt đối không đoán.
+5. TUYỆT ĐỐI KHÔNG dùng các cụm từ như "Theo CONTEXT cung cấp", "Dựa vào tài liệu". Hãy trả lời tự nhiên như một người tư vấn.
+6. TRẢ LỜI NGẮN GỌN, TRỰC TIẾP VÀO TRỌNG TÂM CÂU HỎI. KHÔNG tự ý suy diễn hoặc bịa thêm thông tin ngoài CONTEXT.
+7. BẮT BUỘC TRẢ LỜI BẰNG TIẾNG VIỆT.
+8. TRÌNH BÀY RÕ RÀNG: Khi liệt kê các bước, hồ sơ hoặc danh sách, BẮT BUỘC PHẢI XUỐNG DÒNG CHO MỖI GẠCH ĐẦU DÒNG.
 
-        if not context.strip():
-            return "Không tìm thấy thông tin phù hợp."
+CONTEXT:
+{context}
 
-        # ===== RULE: SIMPLE → KHÔNG GỌI LLM =====
-        if is_simple_question(query):
-            print("[INFO] Simple question → skip LLM")
-            return context[:500]
+CÂU HỎI: {query}
+TRẢ LỜI:"""
 
-        # ===== build prompt =====
-        prompt = build_prompt(query, context)
-        print("Prompt length:", len(prompt))
+        answer = smart_llm_invoke(prompt)
 
-        # ===== call LLM =====
-        response = call_llm_with_retry(llm, prompt)
-
-        if response and hasattr(response, "content"):
-            return response.content
-
-        raise Exception("Primary LLM failed")
+        if answer:
+            CACHE[query_key] = answer
+            return answer
+        else:
+            return "Hiện tại tất cả dịch vụ AI (Gemini, Ollama) đều không phản hồi. Vui lòng thử lại sau."
 
     except Exception as e:
-        print("[RAG ERROR]:", str(e))
-
-        # ===== fallback KHÔNG GỌI LLM =====
-        if context:
-            print("[INFO] Fallback → dùng context")
-            return f"Thông tin:\n{context[:300]}"
+        print(f"[CRITICAL ERROR]: {e}")
         return "Hệ thống đang bận, vui lòng thử lại sau."

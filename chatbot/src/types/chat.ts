@@ -1,6 +1,15 @@
 export type Role = "user" | "bot";
 
-export interface MessageType {
+export interface ChatMessage {
+  id: string;
   role: Role;
-  text: string;
+  content: string;
+  createdAt: number;
+}
+
+export type UserRole = "guest" | "user" | "admin";
+
+export interface User {
+  name: string;
+  role: UserRole;
 }

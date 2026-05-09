@@ -1,48 +1,62 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from dotenv import load_dotenv
 from rag.loader import load_data
 from rag.chunker import create_chunks
 from rag.vectorstore import build_vectorstore
 from rag.pipeline import ask_rag
-from rag.config import get_llm, get_fallback_llm
-from dotenv import load_dotenv
+from rag.config import get_llm, get_fallback_llms
+from fastapi.middleware.cors import CORSMiddleware
+from rag.memory import get_history, save_message
+from routers import user, admin, auth
 import os
+import firebase_admin
+from firebase_admin import credentials
 
-load_dotenv()
+# ===== LOAD ENV =====
+load_dotenv(dotenv_path=".env")
+# Bảo mật: Chỉ in 4 ký tự cuối của API Key thay vì toàn bộ
+api_key = os.getenv("GOOGLE_API_KEY")
+print(f"API KEY LOADED: ...{api_key[-4:] if api_key else 'NOT FOUND'}")
+
+# ===== FIREBASE INIT =====
+# Khởi tạo Firebase Admin SDK với Service Account Key
+try:
+    cred = credentials.Certificate("serviceAccountKey.json")
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
+        print("=== FIREBASE INITIALIZED ===")
+except Exception as e:
+    print(f"=== FIREBASE INIT ERROR: {e} ===")
 
 app = FastAPI()
 
-# GLOBAL
-db = None
-llm = None
-fallback_llm = None
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-
+# ===== STARTUP =====
 @app.on_event("startup")
 def startup():
-    global db, llm, fallback_llm
+    print("=== STARTING RAG SYSTEM ===")
+    try:
+        data = load_data()
+        chunks = create_chunks(data)
+        
+        # Build Vector DB (Chứa các Metadata 'name' và 'field' để pipeline lọc)
+        app.state.db = build_vectorstore(chunks)
 
-    print("=== STARTUP ===")
+        app.state.llm = get_llm()
+        app.state.fallback_llms = get_fallback_llms()
+        print("=== SYSTEM READY ===")
+    except Exception as e:
+        print(f"=== STARTUP ERROR: {e} ===")
+        app.state.db = None
 
-    data = load_data()
-    print("Loaded data:", len(data))
+app.include_router(user.router)
+app.include_router(admin.router)
+app.include_router(auth.router)
 
-    chunks = create_chunks(data)
-    print("Chunks:", len(chunks))
-
-    db = build_vectorstore(chunks)
-
-    llm = get_llm()
-    fallback_llm = get_fallback_llm()
-
-    print("=== READY ===")
-
-
-@app.get("/")
-def root():
-    return {"status": "OK"}
-
-
-@app.get("/chat")
-def chat(q: str):
-    answer = ask_rag(db, q, llm, fallback_llm)
-    return {"answer": answer}
+#       py -m uvicorn main:app --reload --port 8000

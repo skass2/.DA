@@ -1,0 +1,228 @@
+{
+  "version": "3.0",
+  "domain": "thu_tuc_hanh_chinh",
+  "intents": [
+
+    {
+      "type": "intent",
+      "intent": "greeting",
+      "priority": 1,
+      "user_examples": [
+        "xin chào",
+        "chào",
+        "hello",
+        "hi",
+        "chào bạn",
+        "có ai không",
+        "alo",
+        "hello bot",
+        "bot ơi",
+        "chào buổi sáng",
+        "chào buổi tối"
+      ],
+      "bot_responses": [
+        "Xin chào! Tôi có thể hỗ trợ bạn tra cứu thủ tục hành chính.",
+        "Chào bạn! Bạn đang cần làm thủ tục gì?",
+        "Xin chào, hãy cho tôi biết bạn cần tra cứu thủ tục nào.",
+        "Chào bạn! Bạn có thể hỏi về hồ sơ, lệ phí hoặc thời gian xử lý thủ tục."
+      ],
+      "follow_up": [
+        "Bạn cần tra cứu thủ tục gì?",
+        "Bạn đang muốn làm giấy tờ nào?",
+        "Bạn cần hỗ trợ về hồ sơ hay lệ phí?"
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "confused_user",
+      "priority": 2,
+      "user_examples": [
+        "không hiểu",
+        "gì vậy",
+        "hả",
+        "bạn nói gì",
+        "tôi không hiểu",
+        "khó hiểu quá",
+        "giải thích lại",
+        "nói rõ hơn",
+        "ý là gì"
+      ],
+      "bot_responses": [
+        "Có thể tôi chưa diễn đạt rõ. Bạn muốn hỏi về thủ tục, hồ sơ hay lệ phí?",
+        "Bạn có thể nói rõ hơn yêu cầu của mình không?",
+        "Tôi sẽ giải thích lại nếu bạn cho biết cụ thể bạn cần gì.",
+        "Bạn đang cần hỗ trợ về phần nào của thủ tục?"
+      ],
+      "follow_up": [
+        "Bạn cần biết hồ sơ hay lệ phí?",
+        "Bạn đang hỏi về thủ tục nào?",
+        "Bạn có thể nhập tên thủ tục cụ thể."
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "fallback",
+      "priority": 3,
+      "user_examples": [
+        "asdf",
+        "???",
+        "abcxyz",
+        "123123",
+        "test",
+        "random",
+        "loạn",
+        "không liên quan",
+        "nói linh tinh"
+      ],
+      "bot_responses": [
+        "Tôi chưa hiểu câu hỏi của bạn. Bạn có thể nhập rõ tên thủ tục cần tra cứu không?",
+        "Câu hỏi của bạn chưa rõ. Bạn hãy mô tả cụ thể hơn.",
+        "Hiện tại tôi chưa thể xử lý yêu cầu này. Bạn có thể hỏi về thủ tục hành chính cụ thể.",
+        "Bạn vui lòng nhập câu hỏi rõ ràng hơn, ví dụ: 'lệ phí làm CCCD bao nhiêu'."
+      ],
+      "follow_up": [
+        "Bạn cần tra cứu thủ tục nào?",
+        "Bạn muốn biết hồ sơ, lệ phí hay thời gian?",
+        "Hãy nhập tên thủ tục cụ thể."
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "ask_fee_general",
+      "priority": 4,
+      "user_examples": [
+        "lệ phí bao nhiêu",
+        "mất bao nhiêu tiền",
+        "phí là bao nhiêu",
+        "có mất phí không",
+        "chi phí thế nào",
+        "giá bao nhiêu",
+        "tốn tiền không"
+      ],
+      "bot_responses": [
+        "Bạn vui lòng cho biết cụ thể thủ tục để tôi cung cấp lệ phí chính xác.",
+        "Lệ phí phụ thuộc vào từng thủ tục. Bạn hãy nhập tên thủ tục cụ thể.",
+        "Bạn đang hỏi về lệ phí của thủ tục nào?"
+      ],
+      "follow_up": [
+        "Ví dụ: CCCD, hộ khẩu, đăng ký kết hôn",
+        "Bạn muốn tra cứu thủ tục nào?",
+        "Hãy nhập tên thủ tục để tôi hỗ trợ chính xác hơn"
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "ask_documents_general",
+      "priority": 4,
+      "user_examples": [
+        "cần giấy tờ gì",
+        "cần những gì",
+        "hồ sơ gồm gì",
+        "chuẩn bị gì",
+        "cần mang gì",
+        "giấy tờ cần thiết"
+      ],
+      "bot_responses": [
+        "Bạn cần cung cấp tên thủ tục cụ thể để tôi liệt kê hồ sơ.",
+        "Mỗi thủ tục có hồ sơ khác nhau. Bạn đang hỏi thủ tục nào?",
+        "Hãy cho tôi biết tên thủ tục để cung cấp danh sách giấy tờ."
+      ],
+      "follow_up": [
+        "Ví dụ: làm CCCD, đăng ký kết hôn",
+        "Bạn muốn tra cứu thủ tục gì?",
+        "Hãy nhập tên thủ tục cụ thể"
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "ask_time_general",
+      "priority": 4,
+      "user_examples": [
+        "bao lâu",
+        "mất bao lâu",
+        "thời gian bao lâu",
+        "khi nào xong",
+        "bao nhiêu ngày",
+        "làm bao lâu"
+      ],
+      "bot_responses": [
+        "Thời gian xử lý phụ thuộc vào từng thủ tục. Bạn vui lòng nhập tên thủ tục.",
+        "Bạn đang hỏi về thời gian của thủ tục nào?",
+        "Hãy cung cấp tên thủ tục để tôi trả lời chính xác."
+      ],
+      "follow_up": [
+        "Ví dụ: CCCD, giấy khai sinh",
+        "Bạn muốn tra cứu thủ tục nào?",
+        "Hãy nhập tên thủ tục cụ thể"
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "ask_location_general",
+      "priority": 4,
+      "user_examples": [
+        "làm ở đâu",
+        "nộp ở đâu",
+        "địa điểm",
+        "cơ quan nào",
+        "đến đâu làm",
+        "ở đâu giải quyết"
+      ],
+      "bot_responses": [
+        "Bạn cần cung cấp tên thủ tục để xác định cơ quan thực hiện.",
+        "Mỗi thủ tục có cơ quan xử lý khác nhau. Bạn đang hỏi thủ tục nào?",
+        "Hãy nhập tên thủ tục để tôi hướng dẫn địa điểm chính xác."
+      ],
+      "follow_up": [
+        "Ví dụ: CCCD, hộ khẩu",
+        "Bạn cần tra cứu thủ tục nào?",
+        "Hãy nhập tên thủ tục cụ thể"
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "thanks",
+      "priority": 5,
+      "user_examples": [
+        "cảm ơn",
+        "thanks",
+        "ok cảm ơn",
+        "cảm ơn bạn",
+        "tks",
+        "thank you"
+      ],
+      "bot_responses": [
+        "Rất vui được hỗ trợ bạn!",
+        "Không có gì, nếu cần thêm hãy hỏi nhé.",
+        "Tôi luôn sẵn sàng hỗ trợ bạn."
+      ]
+    },
+
+    {
+      "type": "intent",
+      "intent": "goodbye",
+      "priority": 5,
+      "user_examples": [
+        "tạm biệt",
+        "bye",
+        "ok xong rồi",
+        "không cần nữa",
+        "kết thúc",
+        "thoát"
+      ],
+      "bot_responses": [
+        "Chào bạn! Nếu cần hỗ trợ thêm, hãy quay lại nhé.",
+        "Cảm ơn bạn đã sử dụng hệ thống.",
+        "Chúc bạn một ngày tốt lành!"
+      ]
+    }
+
+  ]
+}

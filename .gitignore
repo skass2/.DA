@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables
+backend/.env
+backend/.env.*
+chatbot/.env
+chatbot/.env.*
+backend/serviceAccountKey.json
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# RAG Caches, Logs & Data
+*.log
+vector_store/
+chroma_db/
+faiss_index/
+.pytest_cache/

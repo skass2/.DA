@@ -2,31 +2,39 @@ import { useState } from "react";
 
 interface Props {
   onSend: (text: string) => void;
+  loading: boolean;
 }
 
-export default function InputBox({ onSend }: Props) {
+export default function InputBox({ onSend, loading }: Props) {
   const [text, setText] = useState("");
 
   const handleSend = () => {
-    if (!text.trim()) return;
+    if (!text.trim() || loading) return;
     onSend(text);
     setText("");
   };
 
   return (
-    <div className="p-3 border-t flex gap-2">
+    <div className="flex gap-3">
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="flex-1 border rounded px-2 py-1"
         placeholder="Nhập câu hỏi..."
+        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.nativeEvent.isComposing) handleSend();
+        }}
       />
 
       <button
         onClick={handleSend}
-        className="bg-blue-500 text-white px-4 rounded"
+        disabled={loading}
+        className={`px-6 py-2 rounded-lg text-white transition-all duration-300 transform
+          ${loading 
+            ? "bg-gray-400 cursor-not-allowed" 
+            : "bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-md"}`}
       >
-        Gửi
+        {loading ? "..." : "Gửi"}
       </button>
     </div>
   );

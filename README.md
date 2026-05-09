@@ -1,5 +1,9 @@
 # RAG Chatbot Tra Cứu Thủ Tục Hành Chính
 
+## Demo Web của tôi: https://mychatbot-7021.web.app/ 
+
+---
+
 ## 📖 Giới thiệu
 Dự án xây dựng Chatbot tra cứu thủ tục hành chính thông minh, ứng dụng mô hình RAG (Retrieval-Augmented Generation) kết hợp với các mô hình ngôn ngữ lớn (LLM) hiện đại như Gemini 2.5 Flash / Pro, Ollama. Chatbot giúp người dùng (người dân, doanh nghiệp) dễ dàng tìm kiếm thông tin về hồ sơ, lệ phí, thời gian và cơ quan giải quyết các thủ tục hành chính tại Việt Nam bằng ngôn ngữ tự nhiên.
 
@@ -78,3 +82,110 @@ cd chatbot
 npm install
 npm run dev
 ```
+### 3. Khởi chạy Ngrok để Public Backend Local ra Internet (Tùy chọn)
+
+Trong quá trình phát triển hệ thống, nếu Frontend đã được deploy lên Cloud (Firebase Hosting, Vercel, Netlify,...) nhưng Backend vẫn chạy trên máy local (`localhost`), Frontend sẽ không thể gọi API trực tiếp từ Internet.  
+
+Để giải quyết vấn đề này, có thể sử dụng Ngrok để tạo một tunnel công khai (public tunnel), cho phép Backend local có thể truy cập được từ bên ngoài Internet.
+
+#### Bước 1: Cài đặt Ngrok
+
+Tải và cài đặt Ngrok tại website chính thức:
+
+[Ngrok Official Website](https://ngrok.com)
+
+Sau khi cài đặt, kiểm tra phiên bản bằng lệnh:
+
+```bash
+ngrok version
+```
+
+---
+
+#### Bước 2: Khởi chạy Backend
+
+Ví dụ Backend FastAPI đang chạy tại port `8000`:
+
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+---
+
+#### Bước 3: Khởi chạy Ngrok
+
+Mở terminal mới và chạy lệnh:
+
+```bash
+ngrok http 8000
+```
+
+Sau khi khởi chạy thành công, Ngrok sẽ cung cấp một địa chỉ public dạng:
+
+```bash
+Forwarding https://xxxx-xx-xx.ngrok-free.app -> http://localhost:8000
+```
+Hoặc 
+
+```bash
+Forwarding https://xxxx-xx-xx.ngrok-free.dev -> http://localhost:8000
+```
+
+Ví dụ:
+
+```bash
+https://abcd-1234.ngrok-free.app
+```
+```bash
+https://abcd-1234-xyzz.ngrok-free.dev
+```
+Đây chính là URL để Frontend trên Cloud có thể gửi request tới Backend local.
+
+---
+
+#### Bước 4: Cập nhật API URL trong Frontend
+
+Thay thế địa chỉ API cũ:
+
+```js
+http://localhost:8000
+```
+
+thành:
+
+```js
+https://abcd-1234.ngrok-free.app
+```
+
+Ví dụ:
+
+```js
+const API_URL = "https://abcd-1234.ngrok-free.app";
+```
+
+---
+
+#### Lưu ý
+
+- URL của Ngrok sẽ thay đổi sau mỗi lần khởi động lại đối với tài khoản miễn phí.
+- Backend local phải luôn đang hoạt động để tunnel duy trì kết nối.
+- Ngrok chỉ nên sử dụng cho mục đích phát triển và kiểm thử, không phù hợp cho môi trường production thực tế.
+
+Ngrok đặc biệt hữu ích trong các trường hợp:
+
+- Demo đồ án
+- Kiểm thử Frontend-Backend
+- Test API trên thiết bị khác
+- Kết nối tạm thời giữa Cloud và máy local
+
+---
+
+#### Kiểm tra hoạt động
+
+Sau khi cấu hình hoàn tất, truy cập:
+
+```bash
+https://abcd-1234.ngrok-free.app/docs
+```
+
+Nếu giao diện Swagger UI của FastAPI hiển thị thành công, Backend đã được public ra Internet.

@@ -2,7 +2,6 @@
   "version": "3.0",
   "domain": "thu_tuc_hanh_chinh",
   "intents": [
-
     {
       "type": "intent",
       "intent": "greeting",
@@ -32,7 +31,6 @@
         "Bạn cần hỗ trợ về hồ sơ hay lệ phí?"
       ]
     },
-
     {
       "type": "intent",
       "intent": "confused_user",
@@ -60,7 +58,6 @@
         "Bạn có thể nhập tên thủ tục cụ thể."
       ]
     },
-
     {
       "type": "intent",
       "intent": "fallback",
@@ -88,7 +85,6 @@
         "Hãy nhập tên thủ tục cụ thể."
       ]
     },
-
     {
       "type": "intent",
       "intent": "ask_fee_general",
@@ -113,7 +109,6 @@
         "Hãy nhập tên thủ tục để tôi hỗ trợ chính xác hơn"
       ]
     },
-
     {
       "type": "intent",
       "intent": "ask_documents_general",
@@ -137,7 +132,6 @@
         "Hãy nhập tên thủ tục cụ thể"
       ]
     },
-
     {
       "type": "intent",
       "intent": "ask_time_general",
@@ -161,7 +155,6 @@
         "Hãy nhập tên thủ tục cụ thể"
       ]
     },
-
     {
       "type": "intent",
       "intent": "ask_location_general",
@@ -185,7 +178,6 @@
         "Hãy nhập tên thủ tục cụ thể"
       ]
     },
-
     {
       "type": "intent",
       "intent": "thanks",
@@ -204,7 +196,6 @@
         "Tôi luôn sẵn sàng hỗ trợ bạn."
       ]
     },
-
     {
       "type": "intent",
       "intent": "goodbye",
@@ -222,7 +213,218 @@
         "Cảm ơn bạn đã sử dụng hệ thống.",
         "Chúc bạn một ngày tốt lành!"
       ]
+    },
+    {
+      "type": "intent",
+      "intent": "ask_working_hours",
+      "priority": 4,
+      "user_examples": [
+        "mấy giờ mở cửa",
+        "lịch làm việc",
+        "cuối tuần có làm việc không",
+        "thời gian làm việc",
+        "sáng mấy giờ làm",
+        "chiều mấy giờ nghỉ",
+        "thứ 7 có làm không"
+      ],
+      "bot_responses": [
+        "Thông thường, các cơ quan hành chính nhà nước làm việc từ thứ 2 đến thứ 6 (Sáng: 7h30 - 11h30, Chiều: 13h00 - 17h00). Một số nơi có làm việc sáng thứ 7. Bạn dự định đến cơ quan nào?",
+        "Thời gian làm việc hành chính thường là 7h30-11h30 và 13h00-17h00 các ngày trong tuần. Bạn cần kiểm tra lịch của bộ phận một cửa nào?"
+      ],
+      "follow_up": [
+        "Bạn dự định đến cơ quan hoặc UBND nào?",
+        "Bạn cần làm thủ tục gì để tôi tư vấn thời gian phù hợp?"
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "check_status",
+      "priority": 3,
+      "user_examples": [
+        "kiểm tra hồ sơ",
+        "hồ sơ của tôi đến đâu rồi",
+        "tra cứu tình trạng",
+        "khi nào có kết quả",
+        "xem mã biên nhận",
+        "xong chưa"
+      ],
+      "bot_responses": [
+        "Để tra cứu tình trạng xử lý, bạn vui lòng cung cấp mã hồ sơ (mã biên nhận) nhé.",
+        "Tôi có thể giúp bạn kiểm tra. Bạn cho tôi xin mã số hồ sơ của bạn.",
+        "Vui lòng nhập mã hồ sơ của bạn để tôi tiến hành tra cứu."
+      ],
+      "follow_up": [
+        "Mã hồ sơ của bạn là gì?",
+        "Xin hãy nhập mã biên nhận hồ sơ của bạn."
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "ask_online_submission",
+      "priority": 4,
+      "user_examples": [
+        "có làm online được không",
+        "nộp qua mạng được không",
+        "thủ tục trực tuyến",
+        "làm ở nhà được không",
+        "nộp hồ sơ qua cổng dịch vụ công",
+        "không muốn ra phường"
+      ],
+      "bot_responses": [
+        "Nhiều thủ tục hiện nay đã có thể thực hiện trực tuyến qua Cổng Dịch vụ công quốc gia. Bạn đang muốn làm thủ tục nào để tôi kiểm tra?",
+        "Bạn cho tôi biết tên thủ tục để tôi xem thủ tục đó có hỗ trợ nộp trực tuyến không nhé."
+      ],
+      "follow_up": [
+        "Bạn đang cần làm thủ tục gì?",
+        "Hãy nhập tên thủ tục để tôi kiểm tra mức độ dịch vụ công trực tuyến."
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "out_of_domain_chitchat",
+      "priority": 3,
+      "user_examples": [
+        "bạn bao nhiêu tuổi",
+        "bạn tên là gì",
+        "bạn là ai",
+        "bạn có người yêu chưa",
+        "hôm nay thời tiết thế nào",
+        "kể chuyện cười đi",
+        "bạn ăn cơm chưa",
+        "bot do ai tạo ra",
+        "bạn là người hay máy",
+        "hát một bài đi",
+        "tâm sự một chút không",
+        "bạn thấy tôi thế nào"
+      ],
+      "bot_responses": [
+        "Tôi là trợ lý ảo AI chuyên hỗ trợ giải đáp về các thủ tục hành chính công. Tôi không thể trò chuyện về các chủ đề cá nhân hay đời sống. Bạn cần tra cứu thủ tục nào?",
+        "Xin lỗi, tôi chỉ được lập trình để cung cấp thông tin về hồ sơ, lệ phí và quy trình thực hiện thủ tục hành chính. Tôi có thể giúp gì cho bạn trong lĩnh vực này?",
+        "Tôi là bot tự động. Phạm vi hiểu biết của tôi chỉ giới hạn trong các dịch vụ công và thủ tục hành chính. Bạn hãy đặt câu hỏi liên quan đến lĩnh vực này nhé."
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "out_of_domain_emergency",
+      "priority": 1,
+      "user_examples": [
+        "cứu tôi với",
+        "gọi cấp cứu",
+        "gọi công an",
+        "có trộm",
+        "nhà bị cháy",
+        "báo cháy",
+        "gọi 113",
+        "tôi bị tai nạn",
+        "cần bác sĩ gấp",
+        "có đánh nhau",
+        "cướp giật"
+      ],
+      "bot_responses": [
+        "Tôi là chatbot thủ tục hành chính và KHÔNG có khả năng xử lý các tình huống khẩn cấp. Xin hãy gọi ngay các số điện thoại khẩn cấp quốc gia:\n- 111: Tổng đài bảo vệ trẻ em\n- 113: Cảnh sát cơ động, an ninh trật tự\n- 114: Cứu hỏa, cứu nạn cứu hộ\n- 115: Cấp cứu y tế",
+        "CẢNH BÁO: Đây là hệ thống hỏi đáp thủ tục hành chính, không kết nối với cơ quan khẩn cấp. Vui lòng quay số 113 (Công an), 114 (Cứu hỏa) hoặc 115 (Cấp cứu) ngay lập tức nếu bạn đang gặp nguy hiểm."
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "out_of_domain_abuse_profanity",
+      "priority": 2,
+      "user_examples": [
+        "đồ ngu",
+        "bot đần",
+        "bot ngu",
+        "đm",
+        "vô dụng",
+        "chả được tích sự gì",
+        "trả lời ngu thế",
+        "cút đi",
+        "dẹp đi",
+        "fuck",
+        "shit"
+      ],
+      "bot_responses": [
+        "Tôi là hệ thống trả lời tự động nên đôi khi chưa hiểu hết ý bạn. Mong bạn sử dụng ngôn từ lịch sự. Bạn có thể diễn đạt lại câu hỏi về thủ tục hành chính một cách rõ ràng hơn được không?",
+        "Xin lỗi nếu tôi chưa đáp ứng được yêu cầu của bạn. Xin vui lòng giữ thái độ lịch sự. Tôi có thể hỗ trợ bạn tra cứu thủ tục hành chính nào?",
+        "Hệ thống của chúng tôi từ chối phản hồi các tin nhắn có ngôn từ không phù hợp. Vui lòng đặt câu hỏi văn minh, lịch sự liên quan đến dịch vụ công."
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "out_of_domain_commercial_services",
+      "priority": 3,
+      "user_examples": [
+        "đặt vé máy bay",
+        "giá iphone 15 bao nhiêu",
+        "mua quần áo ở đâu",
+        "đặt phòng khách sạn",
+        "book xe",
+        "gọi taxi",
+        "tôi muốn nạp thẻ điện thoại",
+        "mua hàng online",
+        "khiếu nại mạng fpt",
+        "rớt mạng viettel"
+      ],
+      "bot_responses": [
+        "Tôi là chatbot hỗ trợ Dịch vụ công, chỉ cung cấp thông tin về Thủ tục hành chính của cơ quan Nhà nước. Tôi không hỗ trợ tra cứu giá cả hay dịch vụ thương mại tư nhân.",
+        "Rất tiếc, yêu cầu của bạn thuộc về dịch vụ thương mại. Tôi chỉ có thể hỗ trợ các thủ tục như: làm Căn cước công dân, hộ tịch, đất đai, đăng ký kinh doanh...",
+        "Bạn đang hỏi về dịch vụ ngoài nhà nước. Vui lòng liên hệ trực tiếp với tổng đài chăm sóc khách hàng của doanh nghiệp cung cấp dịch vụ đó."
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "out_of_domain_tech_support",
+      "priority": 3,
+      "user_examples": [
+        "lấy lại mật khẩu facebook",
+        "máy tính bị đơ",
+        "sửa điện thoại",
+        "không kết nối được wifi",
+        "bị hack tài khoản",
+        "tải ứng dụng thế nào",
+        "màn hình bị đen",
+        "lỗi win"
+      ],
+      "bot_responses": [
+        "Tôi không phải là kỹ thuật viên IT. Tôi chỉ hỗ trợ thông tin về thủ tục hành chính nhà nước. Nếu bạn gặp lỗi về kỹ thuật trên Cổng dịch vụ công, vui lòng để lại lời nhắn chi tiết về lỗi.",
+        "Tôi không có chuyên môn về sửa chữa máy tính hay mạng xã hội. Bạn có câu hỏi nào liên quan đến hồ sơ, giấy tờ hành chính không?"
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "out_of_domain_deep_legal_advice",
+      "priority": 3,
+      "user_examples": [
+        "tôi muốn kiện hàng xóm",
+        "phân chia tài sản ly hôn thế nào",
+        "đòi nợ bằng cách nào",
+        "viết đơn khởi kiện",
+        "luật sư tư vấn",
+        "có người vay tiền không trả",
+        "tranh chấp đất đai phải làm sao",
+        "tố cáo lừa đảo"
+      ],
+      "bot_responses": [
+        "Tôi chỉ cung cấp thông tin về HƯỚNG DẪN THỦ TỤC hành chính (hồ sơ, trình tự, lệ phí). Đối với các vấn đề tranh chấp, kiện tụng hay tư vấn pháp lý chuyên sâu, bạn vui lòng liên hệ trực tiếp với Văn phòng Luật sư hoặc Tòa án có thẩm quyền.",
+        "Việc tư vấn pháp lý giải quyết tranh chấp nằm ngoài phạm vi hoạt động của tôi. Tuy nhiên, nếu bạn muốn biết thủ tục nộp 'Đơn khiếu nại' hoặc 'Đơn tố cáo' lên cơ quan hành chính, tôi có thể hướng dẫn quy trình."
+      ]
+    },
+    {
+      "type": "intent",
+      "intent": "out_of_domain_sensitive_topics",
+      "priority": 3,
+      "user_examples": [
+        "quan điểm chính trị",
+        "nhà nước",
+        "tôn giáo",
+        "bầu cử",
+        "bình luận về tin tức",
+        "bạn nghĩ gì về tổng thống",
+        "đánh giá chính sách"
+      ],
+      "bot_responses": [
+        "Tôi là một công cụ tra cứu thông tin thủ tục hành chính tự động, được lập trình để hoạt động trung lập và không thảo luận về các vấn đề chính trị, tôn giáo hay tin tức xã hội. Mong bạn thông cảm.",
+        "Vấn đề bạn hỏi nằm ngoài phạm vi phục vụ của hệ thống. Xin vui lòng chỉ đặt các câu hỏi liên quan đến quy định thực hiện thủ tục hành chính hiện hành."
+      ]
     }
-
   ]
 }

@@ -146,14 +146,29 @@ CÂU HỎI VIẾT LẠI:"""
         detected_proc = detect_procedure_name(query, history=history)
         field = detect_field(raw_query)
 
-        # 5. Retrieval
-        search_kwargs = {"k": 15}
-        if detected_proc:
-            search_kwargs["filter"] = {"name": detected_proc}
-            print(f"[SYSTEM]: Đã khóa mục tiêu vào: {detected_proc}")
+        # 5. Retrieval (Hybrid)
+        docs = []
+        
+        # 5.1 Tìm kiếm ngữ nghĩa tự do (Semantic Search)
+        retriever_semantic = db.as_retriever(search_kwargs={"k": 15})
+        docs_semantic = retriever_semantic.invoke(query)
+        docs.extend(docs_semantic)
 
-        retriever = db.as_retriever(search_kwargs=search_kwargs)
-        docs = retriever.invoke(query)
+        # 5.2 Tìm kiếm theo bộ lọc Keyword (Nếu có)
+        if detected_proc:
+            print(f"[SYSTEM]: Keyword gợi ý thủ tục: {detected_proc}")
+            retriever_filter = db.as_retriever(search_kwargs={"k": 10, "filter": {"name": detected_proc}})
+            docs_filter = retriever_filter.invoke(query)
+            docs.extend(docs_filter)
+            
+        # 5.3 Loại bỏ trùng lặp (Deduplicate)
+        unique_docs = []
+        seen_content = set()
+        for d in docs:
+            if d.page_content not in seen_content:
+                unique_docs.append(d)
+                seen_content.add(d.page_content)
+        docs = unique_docs
 
         if not docs:
             return "Xin lỗi, tôi không tìm thấy thông tin phù hợp trong cơ sở dữ liệu."
@@ -170,16 +185,15 @@ CÂU HỎI VIẾT LẠI:"""
             for d in docs:
                 d.metadata['score'] = 1.0
 
-        # 7. Chọn thủ tục thắng cuộc
-        if not detected_proc:
-            proc_scores = {}
-            for d in docs:
-                p_name = d.metadata.get("name")
-                if p_name:
-                    proc_scores[p_name] = proc_scores.get(p_name, 0) + d.metadata['score']
-            main_name = max(proc_scores, key=proc_scores.get) if proc_scores else "Thủ tục không xác định"
-        else:
-            main_name = detected_proc
+        # 7. Chọn thủ tục thắng cuộc bằng Reranker
+        proc_scores = {}
+        # Lấy top 5 chunk có điểm cao nhất để bầu chọn thủ tục chính xác nhất
+        for d in docs[:5]:
+            p_name = d.metadata.get("name")
+            if p_name:
+                proc_scores[p_name] = proc_scores.get(p_name, 0) + d.metadata['score']
+                
+        main_name = max(proc_scores, key=proc_scores.get) if proc_scores else "Thủ tục không xác định"
 
         print(f"[WINNER]: {main_name}")
 

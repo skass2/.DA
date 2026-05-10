@@ -13,6 +13,7 @@ export default function ChatBox() {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>(`session-${Date.now()}`);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -99,6 +100,8 @@ export default function ChatBox() {
       {/* Sidebar */}
       {firebaseUser && (
         <Sidebar 
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           currentSessionId={sessionId} 
           onSelectSession={async (id) => {
             setSessionId(id);
@@ -129,15 +132,35 @@ export default function ChatBox() {
       )}
 
       {/* Main Chat Area */}
-      <div className="flex flex-col flex-1 h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors duration-500">
+      <div className="flex flex-col flex-1 h-full bg-[#f2f6fc] dark:bg-gray-900 transition-colors duration-500 relative">
         
+        {/* Hình mờ (Watermark) họa tiết trống đồng đặc trưng của Dịch vụ công */}
+        <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center opacity-5 dark:opacity-10 overflow-hidden">
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/4/41/Dong_Son_bronze_drum_pattern.svg" 
+            alt="watermark" 
+            className="w-full max-w-2xl object-contain pointer-events-none select-none"
+          />
+        </div>
+
         {/* HEADER */}
-        <div className="flex justify-between items-center p-4 border-b bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-md shrink-0 transition-colors duration-500">
-          <div>
-            <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-500">Chatbot Thủ Tục</h3>
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
-              Sẵn sàng hỗ trợ bạn
-            </p>
+        <div className="relative z-10 flex justify-between items-center p-4 border-b bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm shrink-0 transition-colors duration-500">
+          <div className="flex items-center gap-3">
+            {firebaseUser && !isSidebarOpen && (
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 -ml-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300"
+                title="Mở thanh bên"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </button>
+            )}
+            <div>
+              <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-500">Chatbot Thủ Tục</h3>
+              <p className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
+                Sẵn sàng hỗ trợ bạn
+              </p>
+            </div>
           </div>
           
           <div className="flex gap-4 items-center">
@@ -175,13 +198,13 @@ export default function ChatBox() {
         </div>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-6 transition-colors duration-500 relative">
+        <div className="relative z-10 flex-1 overflow-y-auto p-6 transition-colors duration-500">
           {messages.length > 0 ? (
             messages.map((m) => (
               <Message key={m.id} message={m} />
             ))
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 transition-opacity duration-1000">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 transition-opacity duration-500">
               <div className="text-center space-y-4 max-w-md">
                 <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 transition-colors duration-500">
                   Xin chào, {firebaseUser?.displayName || "bạn"}!
@@ -220,7 +243,7 @@ export default function ChatBox() {
         </div>
 
         {/* INPUT */}
-        <div className="p-4 border-t bg-white dark:bg-gray-800 shrink-0 transition-colors duration-500">
+        <div className="relative z-10 p-4 border-t bg-white dark:bg-gray-800 shrink-0 transition-colors duration-500">
           <InputBox onSend={sendMessage} loading={loading} />
         </div>
       </div>

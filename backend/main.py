@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from dotenv import load_dotenv
 from rag.loader import load_data
 from rag.chunker import create_chunks
-from rag.vectorstore import build_vectorstore
+from rag.vectorstore import build_vectorstore, load_existing_vectorstore
 from rag.pipeline import ask_rag
 from rag.config import get_llm, get_fallback_llms
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,11 +42,16 @@ app.add_middleware(
 def startup():
     print("=== STARTING RAG SYSTEM ===")
     try:
-        data = load_data()
-        chunks = create_chunks(data)
-        
-        # Build Vector DB (Chứa các Metadata 'name' và 'field' để pipeline lọc)
-        app.state.db = build_vectorstore(chunks)
+        # Ưu tiên load DB đã có trên ổ cứng để khởi động nhanh
+        db = load_existing_vectorstore()
+        if db is None:
+            print("=== KHÔNG TÌM THẤY VECTOR DB. TIẾN HÀNH TẠO MỚI... ===")
+            data = load_data()
+            chunks = create_chunks(data)
+            app.state.db = build_vectorstore(chunks, backup=False)
+        else:
+            print("=== ĐÃ LOAD VECTOR DB CÓ SẴN (BỎ QUA CHUNKING) ===")
+            app.state.db = db
 
         app.state.llm = get_llm()
         app.state.fallback_llms = get_fallback_llms()

@@ -11,13 +11,21 @@ Dự án xây dựng Chatbot tra cứu thủ tục hành chính thông minh, ứ
 
 ## ✨ Tính năng nổi bật
 - **Xử lý ngôn ngữ tự nhiên (NLP):** Nhận diện ý định người dùng (Intent Classification) để xử lý các câu chào hỏi, hỏi đáp chung hoặc tra cứu chuyên sâu. Tự động viết lại câu hỏi dựa trên lịch sử chat (Context-aware Rewrite).
+- **Giao diện Quản trị (Admin Dashboard) toàn diện:**
+  - **Thiết kế Responsive:** Tối ưu hóa hiển thị trên mọi thiết bị (máy tính, điện thoại).
+  - **Chuyển đổi Dark/Light Mode:** Tùy chỉnh giao diện sáng/tối.
+  - **Quản lý Tài liệu & CSDL:** Thêm, sửa, xóa thủ tục hành chính với hỗ trợ AI chuyển đổi văn bản tự nhiên sang JSON.
+  - **Quản lý Backup Vector DB:** Sao lưu, khôi phục và thiết lập chính sách tự động xóa bản sao lưu.
+  - **Giám sát Lịch sử Chat:** Xem lịch sử chat chi tiết của từng người dùng, có chức năng xóa phiên chat.
+  - **Phân quyền Admin:** Thêm, xóa quản trị viên động, lưu trữ trên Firebase.
+  - **Tìm kiếm nâng cao:** Tìm kiếm người dùng, thủ tục và quản trị viên dễ dàng.
 - **RAG Pipeline Nâng Cao:**
   - Tìm kiếm Vector kết hợp thuật toán MMR (Maximal Marginal Relevance) nhằm tăng độ đa dạng của tài liệu.
   - Lọc theo metadata (Field-based retrieval) để tìm chính xác phần thông tin người dùng cần (Hồ sơ, lệ phí, thời gian...).
   - Chunk dữ liệu theo từng trường để tối ưu hóa context đưa vào LLM.
   - **Reranking:** Xếp hạng lại kết quả tìm kiếm bằng mô hình Cross-Encoder (`ms-marco-MiniLM-L-6-v2`) giúp tăng độ chính xác của ngữ cảnh.
 - **Smart LLM Fallback:** Cơ chế tự động chuyển đổi mô hình (Gemini, OpenRouter, Ollama...) khi gặp sự cố mạng hoặc vượt quá hạn mức API (Lỗi 429).
-- **Quản lý phiên chat (Session Memory):** Lưu trữ và phân trang lịch sử hội thoại trên Firebase Firestore theo thời gian thực.
+- **Quản lý phiên chat (Session Memory):** Lưu trữ lịch sử hội thoại trên Firebase Firestore theo thời gian thực, phân loại theo người dùng.
 - **Xác thực người dùng:** Hệ thống Đăng nhập / Đăng ký an toàn sử dụng Firebase Auth kết hợp gửi mã xác thực OTP qua Email.
 
 ---
@@ -26,6 +34,7 @@ Dự án xây dựng Chatbot tra cứu thủ tục hành chính thông minh, ứ
 - **Backend:** Python, FastAPI, LangChain, SentenceTransformers.
 - **Frontend:** React, TypeScript, Vite.
 - **Cơ sở dữ liệu:** Firebase Firestore (lưu trữ lịch sử chat, thông tin người dùng, OTP), Vector Database (lưu trữ embeddings thủ tục hành chính).
+- **Quản lý Admin:** Firebase Authentication, Firebase Firestore (lưu trữ danh sách admin).
 - **AI / LLM:** Google Gemini, Cross-Encoder (Reranker).
 
 ---
@@ -52,6 +61,7 @@ Dự án xây dựng Chatbot tra cứu thủ tục hành chính thông minh, ứ
 2. **Intent Detection:** Xác định ý định (chào hỏi, hỏi thủ tục, không hiểu,...).
 3. **Query Rewrite:** Dùng LLM viết lại câu hỏi dựa trên lịch sử để làm rõ ngữ cảnh.
 4. **Normalize & Keyword Extraction:** Chuẩn hóa câu hỏi, trích xuất thực thể (Tên thủ tục, Lĩnh vực).
+5. **AI-powered NL to JSON (Admin):** Chuyển đổi văn bản tự nhiên thành JSON cho dữ liệu thủ tục.
 5. **Vector Search (k=15):** Truy xuất tài liệu từ Vector DB, kết hợp lọc theo metadata.
 6. **Reranking:** Chấm điểm và sắp xếp lại các chunk tài liệu bằng Cross-Encoder.
 7. **Context Assembly:** Tổng hợp top các chunk tài liệu liên quan nhất làm ngữ cảnh.

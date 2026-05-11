@@ -53,7 +53,7 @@ export default function Sidebar({ onSelectSession, currentSessionId, isOpen, onT
   }, [currentSessionId]);
 
   return (
-    <div className={`bg-[#f0f4f9] dark:bg-gray-900 h-full border-gray-200 dark:border-gray-800 flex flex-col shrink-0 transition-all duration-300 overflow-hidden ${isOpen ? 'w-64 border-r' : 'w-0 border-r-0'}`}>
+    <div className={`absolute md:relative z-50 bg-[#f0f4f9] dark:bg-gray-900 h-full border-gray-200 dark:border-gray-800 flex flex-col shrink-0 transition-all duration-300 overflow-hidden shadow-2xl md:shadow-none ${isOpen ? 'w-72 md:w-64 border-r translate-x-0' : 'w-0 border-r-0 -translate-x-full md:translate-x-0'}`}>
       <div className="w-64 h-full flex flex-col shrink-0">
         <div className="p-3 flex items-center justify-between gap-2">
           <button 

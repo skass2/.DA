@@ -6,7 +6,12 @@ import type { ChatMessage } from "../types/chat";
 import { auth, signOut } from "../firebase";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 
-export default function ChatBox() {
+interface ChatBoxProps {
+  isAdmin?: boolean;
+  onSwitchMode?: () => void;
+}
+
+export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -14,6 +19,7 @@ export default function ChatBox() {
   const [token, setToken] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>(`session-${Date.now()}`);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -131,6 +137,14 @@ export default function ChatBox() {
         />
       )}
 
+      {/* Lớp phủ cho Mobile khi mở Sidebar */}
+      {isSidebarOpen && firebaseUser && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-40 md:hidden" 
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1 h-full bg-[#f2f6fc] dark:bg-gray-900 transition-colors duration-500 relative">
         
@@ -166,6 +180,7 @@ export default function ChatBox() {
           <div className="flex gap-4 items-center">
             {firebaseUser && (
               <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-500">
+              <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-500 max-w-[150px] sm:max-w-[200px] truncate">
                 {firebaseUser.photoURL ? (
                   <img src={firebaseUser.photoURL} alt="Avatar" className="w-7 h-7 rounded-full shadow-sm" />
                 ) : (
@@ -180,6 +195,11 @@ export default function ChatBox() {
             )}
             
             <div className="flex items-center gap-2">
+              {isAdmin && onSwitchMode && (
+                <button onClick={onSwitchMode} className="px-3 py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm mr-1">
+                  Quản trị
+                </button>
+              )}
               <button
                 onClick={toggleDarkMode}
                 className="p-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all duration-500"
@@ -188,7 +208,7 @@ export default function ChatBox() {
                 {darkMode ? "☀️" : "🌙"}
               </button>
               <button 
-                onClick={handleLogout} 
+                onClick={() => setShowLogoutConfirm(true)} 
                 className="px-4 py-1.5 rounded bg-red-500 text-white font-medium hover:bg-red-600 transition-all duration-500 shadow-md text-sm"
               >
                 Đăng xuất
@@ -246,6 +266,24 @@ export default function ChatBox() {
         <div className="relative z-10 p-4 border-t bg-white dark:bg-gray-800 shrink-0 transition-colors duration-500">
           <InputBox onSend={sendMessage} loading={loading} />
         </div>
+
+        {/* Modal Xác nhận Đăng xuất */}
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6 text-center border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Xác nhận đăng xuất</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">Bạn có chắc chắn muốn thoát khỏi phiên làm việc?</p>
+              <div className="flex justify-center gap-4">
+                <button onClick={() => setShowLogoutConfirm(false)} className="px-6 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">
+                  Hủy
+                </button>
+                <button onClick={handleLogout} className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm">
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

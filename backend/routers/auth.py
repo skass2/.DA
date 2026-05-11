@@ -28,15 +28,29 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         )
 
 def get_admin_user(current_user: dict = Depends(get_current_user)):
-    # Cách đơn giản: Chỉ định cứng các email được phép làm admin
-    # Hoặc bạn có thể dùng Firebase Custom Claims: if not current_user.get("admin", False):
-    admin_emails = ["admin@example.com"] # <<< THAY ĐỔI EMAIL CỦA BẠN VÀO ĐÂY
+    admin_emails = ["ngvinh7021@gmail.com"] # Super Admin mặc định
+    try:
+        db = get_db()
+        doc = db.collection("settings").document("admins").get()
+        if doc.exists:
+            admin_emails.extend(doc.to_dict().get("emails", []))
+    except Exception:
+        pass
+
     if current_user.get("email") not in admin_emails and not current_user.get("admin", False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="Không có quyền truy cập (Chỉ dành cho Admin)"
         )
     return current_user
+
+@router.get("/check-admin")
+def check_admin(current_user: dict = Depends(get_current_user)):
+    try:
+        get_admin_user(current_user)
+        return {"is_admin": True}
+    except:
+        return {"is_admin": False}
 
 # ===== DỮ LIỆU ĐẦU VÀO =====
 class EmailRequest(BaseModel):

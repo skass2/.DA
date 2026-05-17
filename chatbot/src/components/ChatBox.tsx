@@ -179,7 +179,6 @@ export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
           
           <div className="flex gap-4 items-center">
             {firebaseUser && (
-              <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-500">
               <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-500 max-w-[150px] sm:max-w-[200px] truncate">
                 {firebaseUser.photoURL ? (
                   <img src={firebaseUser.photoURL} alt="Avatar" className="w-7 h-7 rounded-full shadow-sm" />

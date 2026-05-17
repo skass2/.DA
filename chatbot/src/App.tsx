@@ -24,7 +24,6 @@ function App() {
           try {
             const token = await currentUser.getIdToken();
             const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-            const res = await fetch(`${apiUrl}/auth/check-admin`, { 
             const res = await fetch(`${apiUrl}/auth/check-admin`, {
               headers: { 
                 "Authorization": `Bearer ${token}`,

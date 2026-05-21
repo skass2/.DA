@@ -39,36 +39,39 @@ def get_history_as_string(session_id: str):
 
 def save_message(uid: str, session_id: str, role: str, content: str):
     """Lưu tin nhắn vào Firestore"""
-    db = get_db()
-    session_ref = db.collection('sessions').document(session_id)
-    
-    # 1. Cập nhật thông tin của Session (Phiên chat)
-    session_doc = session_ref.get()
-    
-    session_data = {
-        "uid": uid,
-        "updated_at": firestore.SERVER_TIMESTAMP
-    }
-    
-    if not session_doc.exists:
-        # Nếu là tin nhắn đầu tiên, tạo title từ nội dung câu hỏi
-        session_data["created_at"] = firestore.SERVER_TIMESTAMP
-        if role == "user":
-            # Lấy 30 ký tự đầu làm tiêu đề
-            session_data["title"] = content[:30] + "..." if len(content) > 30 else content
+    try:
+        db = get_db()
+        session_ref = db.collection('sessions').document(session_id)
+        
+        # 1. Cập nhật thông tin của Session (Phiên chat)
+        session_doc = session_ref.get()
+        
+        session_data = {
+            "uid": uid,
+            "updated_at": firestore.SERVER_TIMESTAMP
+        }
+        
+        if not session_doc.exists:
+            # Nếu là tin nhắn đầu tiên, tạo title từ nội dung câu hỏi
+            session_data["created_at"] = firestore.SERVER_TIMESTAMP
+            if role == "user":
+                # Lấy 30 ký tự đầu làm tiêu đề
+                session_data["title"] = content[:30] + "..." if len(content) > 30 else content
+            else:
+                session_data["title"] = "Trò chuyện mới"
+            session_ref.set(session_data)
         else:
-            session_data["title"] = "Trò chuyện mới"
-        session_ref.set(session_data)
-    else:
-        # Nếu session đã tồn tại, chỉ cập nhật thời gian
-        session_ref.update(session_data)
+            # Nếu session đã tồn tại, chỉ cập nhật thời gian
+            session_ref.update(session_data)
 
-    # 2. Thêm tin nhắn vào Sub-collection
-    session_ref.collection('messages').add({
-        "role": role,
-        "content": content,
-        "timestamp": firestore.SERVER_TIMESTAMP
-    })
+        # 2. Thêm tin nhắn vào Sub-collection
+        session_ref.collection('messages').add({
+            "role": role,
+            "content": content,
+            "timestamp": firestore.SERVER_TIMESTAMP
+        })
+    except Exception as e:
+        print(f"[FIRESTORE ERROR] Lỗi lưu tin nhắn vào DB: {e}")
 
 def clear_history(session_id: str):
     """Xóa lịch sử trong Firestore"""

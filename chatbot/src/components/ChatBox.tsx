@@ -5,13 +5,13 @@ import Sidebar from "./Sidebar";
 import type { ChatMessage } from "../types/chat";
 import { auth, signOut } from "../firebase";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface ChatBoxProps {
   isAdmin?: boolean;
-  onSwitchMode?: () => void;
 }
 
-export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
+export default function ChatBox({ isAdmin }: ChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -20,6 +20,8 @@ export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
   const [sessionId, setSessionId] = useState<string>(`session-${Date.now()}`);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -33,6 +35,16 @@ export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
     });
     return () => unsubscribe();
   }, []);
+
+  // Bắt sự kiện chuyển hướng từ trang chi tiết thủ tục
+  useEffect(() => {
+    if (location.state && location.state.anchorMessage && token) {
+      const initMessage = location.state.anchorMessage;
+      sendMessage(initMessage);
+      // Xóa state để tránh gửi lại tin nhắn khi người dùng reload trang
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, token]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -169,6 +181,14 @@ export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
             )}
+            <button 
+              onClick={() => navigate("/")}
+              className="p-2 -ml-2 sm:ml-0 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300 flex items-center gap-1"
+              title="Về Trang chủ"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <span className="hidden sm:inline text-sm font-medium">Trang chủ</span>
+            </button>
             <div>
               <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-500">Chatbot Thủ Tục</h3>
               <p className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
@@ -178,6 +198,19 @@ export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
           </div>
           
           <div className="flex gap-4 items-center">
+            {/* Thanh tìm kiếm */}
+            <div className="hidden md:block">
+              <input 
+                type="text"
+                placeholder="Tra cứu thủ tục..."
+                className="px-4 py-1.5 text-sm rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 lg:w-64 transition-all duration-300"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    navigate(`/?search=${encodeURIComponent(e.currentTarget.value.trim())}`);
+                  }
+                }}
+              />
+            </div>
             {firebaseUser && (
               <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-500 max-w-[150px] sm:max-w-[200px] truncate">
                 {firebaseUser.photoURL ? (
@@ -194,8 +227,8 @@ export default function ChatBox({ isAdmin, onSwitchMode }: ChatBoxProps) {
             )}
             
             <div className="flex items-center gap-2">
-              {isAdmin && onSwitchMode && (
-                <button onClick={onSwitchMode} className="px-3 py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm mr-1">
+              {isAdmin && (
+                <button onClick={() => navigate("/admin")} className="px-3 py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm mr-1">
                   Quản trị
                 </button>
               )}

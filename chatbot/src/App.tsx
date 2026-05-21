@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ChatBox from "./components/ChatBox";
 import LoginPage from "./components/LoginPage";
 import AdminDashboard from "./components/AdminDashboard";
+import HomePage from "./pages/HomePage";
+import ProcedureDetail from "./pages/ProcedureDetail";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import type { User } from "firebase/auth";
@@ -10,7 +13,6 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [viewMode, setViewMode] = useState<"admin" | "user">("user");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -33,12 +35,10 @@ function App() {
             const data = await res.json();
             if (data.is_admin) {
               setIsAdmin(true);
-              setViewMode("admin");
             } else {
               setIsAdmin(false);
-              setViewMode("user");
             }
-          } catch (e) { setIsAdmin(false); setViewMode("user"); }
+          } catch (e) { setIsAdmin(false); }
         }
       }
       setLoading(false);
@@ -55,13 +55,17 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden">
-      {user 
-        ? (viewMode === "admin" 
-            ? <AdminDashboard onSwitchMode={() => setViewMode("user")} /> 
-            : <ChatBox isAdmin={isAdmin} onSwitchMode={() => setViewMode("admin")} />) 
-        : <LoginPage />}
-    </div>
+    <BrowserRouter>
+      <div className="h-screen w-screen overflow-hidden">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/procedure/:id" element={<ProcedureDetail />} />
+          <Route path="/login" element={user ? <Navigate to="/chat" replace /> : <LoginPage />} />
+          <Route path="/chat" element={user ? <ChatBox isAdmin={isAdmin} /> : <Navigate to="/login" replace />} />
+          <Route path="/admin" element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

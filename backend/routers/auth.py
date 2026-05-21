@@ -60,6 +60,7 @@ class VerifyRequest(BaseModel):
     email: str
     otp_code: str
     password: str
+    name: str = ""
 
 # ===== HÀM GỬI EMAIL (Tùy chọn) =====
 def send_email_otp(to_email: str, otp_code: str):
@@ -111,7 +112,7 @@ def verify_otp_and_register(req: VerifyRequest):
     if data["code"] != req.otp_code:
         raise HTTPException(status_code=400, detail="Mã OTP không chính xác.")
     try:
-        user_record = auth.create_user(email=req.email, password=req.password, email_verified=True)
+        user_record = auth.create_user(email=req.email, password=req.password, display_name=req.name, email_verified=True)
         doc_ref.delete()
         return {"message": "Đăng ký thành công!", "uid": user_record.uid}
     except Exception as e:

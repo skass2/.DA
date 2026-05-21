@@ -1,7 +1,3 @@
-# =========================================================
-# OPTIMIZED SEMANTIC CHUNKER FOR VIETNAMESE ADMINISTRATIVE RAG
-# =========================================================
-
 import re
 import copy
 import hashlib
@@ -20,11 +16,13 @@ except ImportError:
 # CONFIG
 # =========================================================
 
-MAX_CHARS = 1800
+# Giữ chunk nhỏ theo khuyến nghị RAG: khoảng 300-800 tokens/chunk.
+# Ước lượng tiếng Việt đơn giản: 1 token ≈ 4 ký tự.
+MAX_CHARS = 4500
 
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=120,
+    chunk_size=4000,
+    chunk_overlap=400,
     separators=[
         "\n\n",
         "\n",

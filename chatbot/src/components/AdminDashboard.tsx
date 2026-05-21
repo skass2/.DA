@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { auth, signOut } from "../firebase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-interface AdminProps {
-  onSwitchMode: () => void;
-}
+import { useNavigate } from "react-router-dom";
 
-export default function AdminDashboard({ onSwitchMode }: AdminProps) {
+export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"stats" | "history" | "documents" | "admins">("stats");
   const [stats, setStats] = useState<any>(null);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -400,7 +399,7 @@ export default function AdminDashboard({ onSwitchMode }: AdminProps) {
             <button onClick={toggleDarkMode} className="p-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all duration-300" title="Chế độ Giao diện">
               {darkMode ? "☀️" : "🌙"}
             </button>
-            <button onClick={onSwitchMode} className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300">
+            <button onClick={() => navigate("/chat")} className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300">
               Vào khung Chat
             </button>
           </div>

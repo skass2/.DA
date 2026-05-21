@@ -4,7 +4,7 @@ from rag.loader import load_data
 from rag.chunker import create_chunks
 from rag.vectorstore import build_vectorstore, load_existing_vectorstore
 from rag.pipeline import ask_rag
-from rag.config import get_llm, get_fallback_llms
+from rag.config import get_llm, get_lightweight_llm, get_fallback_llms
 from fastapi.middleware.cors import CORSMiddleware
 from rag.memory import get_history, save_message
 from routers import user, admin, auth
@@ -54,6 +54,7 @@ def startup():
             app.state.db = db
 
         app.state.llm = get_llm()
+        app.state.lightweight_llm = get_lightweight_llm()
         app.state.fallback_llms = get_fallback_llms()
         print("=== SYSTEM READY ===")
     except Exception as e:

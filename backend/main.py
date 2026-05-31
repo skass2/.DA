@@ -66,3 +66,19 @@ app.include_router(admin.router)
 app.include_router(auth.router)
 
 #       py -m uvicorn main:app --reload --port 8000
+
+# DEV ROUTER - LOCAL TEST ONLY
+# Chỉ bật khi ENABLE_DEV_ROUTES=true trong .env.
+# Khi deploy thật, đặt ENABLE_DEV_ROUTES=false hoặc xóa biến này.
+import os
+
+if os.getenv("ENABLE_DEV_ROUTES", "false").lower() == "true":
+    try:
+        from routers.dev import router as dev_router
+        app.include_router(dev_router)
+        print("[DEV] Enabled /dev/chat local test route")
+    except Exception as e:
+        print("[DEV] Cannot enable /dev/chat:", e)
+else:
+    print("[DEV] Disabled local test route")
+

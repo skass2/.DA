@@ -3,7 +3,6 @@ import json
 import re
 from collections import OrderedDict
 from sentence_transformers import CrossEncoder
-from qdrant_client.models import Filter, FieldCondition, MatchValue
 from rag.intent import handle_intent
 from rag.normalizer import normalize_query
 from rag.config import get_llm, get_lightweight_llm, get_fallback_llms
@@ -147,43 +146,6 @@ def _model_name(model) -> str:
     return getattr(model, "model", None) or getattr(model, "model_name", None) or model.__class__.__name__
 
 
-def build_qdrant_filter(**conditions):
-    """
-    Tạo filter chuẩn cho Qdrant.
-
-    LangChain Qdrant lưu metadata trong payload theo dạng:
-    metadata.name, metadata.field, metadata.section_type, ...
-    """
-    must_conditions = []
-
-    for key, value in conditions.items():
-        if value is None:
-            continue
-
-        qdrant_key = f"metadata.{key}"
-
-        if isinstance(value, list):
-            for item in value:
-                must_conditions.append(
-                    FieldCondition(
-                        key=qdrant_key,
-                        match=MatchValue(value=item)
-                    )
-                )
-        else:
-            must_conditions.append(
-                FieldCondition(
-                    key=qdrant_key,
-                    match=MatchValue(value=value)
-                )
-            )
-
-    if not must_conditions:
-        return None
-
-    return Filter(must=must_conditions)
-
-
 # ===== HÀM THỰC THI LLM VỚI CƠ CHẾ FALLBACK =====
 def smart_llm_invoke(prompt: str, prefer_lightweight: bool = False):
     """
@@ -308,12 +270,8 @@ CÂU TRUY VẤN TỐI ƯU:"""
         # 5.2 Tìm kiếm theo bộ lọc Keyword (Nếu có)
         if detected_proc:
             print(f"[SYSTEM]: Keyword gợi ý thủ tục: {detected_proc}")
-            qdrant_filter = build_qdrant_filter(name=detected_proc)
-            docs_filter = db.similarity_search(
-                query,
-                k=10,
-                filter=qdrant_filter
-            )
+            retriever_filter = db.as_retriever(search_kwargs={"k": 10, "filter": {"name": detected_proc}})
+            docs_filter = retriever_filter.invoke(query)
             docs.extend(docs_filter)
             
         # 5.3 Loại bỏ trùng lặp (Deduplicate)
@@ -352,50 +310,25 @@ CÂU TRUY VẤN TỐI ƯU:"""
                 else:
                     proc_scores[p_name] = max(proc_scores[p_name], d.metadata['score'])
                 
-        # Nếu đã nhận diện được tên thủ tục rõ ràng, ưu tiên tuyệt đối thủ tục đó.
-        # Tránh trường hợp reranker chọn nhầm sang các biến thể gần nghĩa.
-        if detected_proc:
-            allowed_proc_names = [detected_proc]
-            print(f"[WINNER - DETECTED PROC]: {allowed_proc_names}")
-        else:
-            # Lấy top 2 thủ tục có điểm cao nhất thay vì chỉ 1 để tránh đánh rơi ngữ cảnh khi bị nhiễu
-            top_procs = sorted(proc_scores.items(), key=lambda item: item[1], reverse=True)[:2]
-            allowed_proc_names = [p[0] for p in top_procs] if top_procs else ["Thủ tục không xác định"]
-            print(f"[WINNER]: {allowed_proc_names}")
+        # Lấy top 2 thủ tục có điểm cao nhất thay vì chỉ 1 để tránh đánh rơi ngữ cảnh khi bị nhiễu
+        top_procs = sorted(proc_scores.items(), key=lambda item: item[1], reverse=True)[:2]
+        allowed_proc_names = [p[0] for p in top_procs] if top_procs else ["Thủ tục không xác định"]
 
-        # [PARENT-CHILD RETRIEVER]
-        # Chỉ bổ sung chunk "Cách thức thực hiện" khi câu hỏi liên quan tới:
-        # cách thức, thời hạn, phí hoặc lệ phí.
-        # Nếu người dùng hỏi hồ sơ/giấy tờ thì không thêm method chunk để tránh nhiễu context.
-        method_related_fields = {
-            "Cách thức thực hiện",
-            "Thời hạn giải quyết",
-            "Phí",
-            "Lệ phí",
-        }
+        print(f"[WINNER]: {allowed_proc_names}")
 
-        should_add_method_chunks = (
-            not field
-            or any(f in method_related_fields for f in field)
-        )
-
-        if should_add_method_chunks:
-            for p_name in allowed_proc_names:
-                if p_name != "Thủ tục không xác định":
-                    qdrant_filter = build_qdrant_filter(
-                        name=p_name,
-                        section_type="method"
-                    )
-                    extra_docs = db.similarity_search(
-                        query,
-                        k=3,
-                        filter=qdrant_filter
-                    )
-                    for ed in extra_docs:
-                        if ed.page_content not in seen_content:
-                            ed.metadata['score'] = 0.99
-                            docs.insert(0, ed)
-                            seen_content.add(ed.page_content)
+        # [PARENT-CHILD RETRIEVER] Bổ sung chunk "Cách thức thực hiện" của các Winner 
+        # để không bỏ sót các lưu ý quan trọng về thời gian, chi phí nằm ở cuối văn bản.
+        for p_name in allowed_proc_names:
+            if p_name != "Thủ tục không xác định":
+                extra_docs = db.similarity_search(query, k=3, filter={"$and": [{"name": p_name}, {"section_type": "method"}]})
+                for ed in extra_docs:
+                    if ed.page_content not in seen_content:
+                        ed.metadata['score'] = 0.99  # Gán điểm cao để không bị loại bỏ
+                        # Đánh lừa bộ lọc Field để chunk này luôn được ưu tiên bám sát theo Field gốc
+                        if field and isinstance(field, list):
+                            ed.metadata['field'] = field[0]
+                        docs.insert(0, ed)
+                        seen_content.add(ed.page_content)
 
         # 8. Lọc Chunk theo Winner và Field
         final_docs = [d for d in docs if d.metadata.get("name") in allowed_proc_names]
@@ -406,35 +339,6 @@ CÂU TRUY VẤN TỐI ƯU:"""
                 other_docs = [d for d in final_docs if d not in field_docs]
                 final_docs = field_docs + other_docs
                 print(f"[FIELD FILTER]: Đã ưu tiên các mục {field} lên đầu")
-
-        # [QDRANT EXACT FIELD BOOST]
-        # Khi đã xác định được đúng tên thủ tục và đúng mục thông tin cần hỏi,
-        # lấy trực tiếp các chunk theo metadata.name + metadata.field từ Qdrant.
-        # Cách này tránh việc reranker/search ban đầu bỏ sót chunk hồ sơ.
-        if detected_proc and field:
-            exact_field_docs = []
-
-            for f in field:
-                qdrant_filter = build_qdrant_filter(
-                    name=detected_proc,
-                    field=f
-                )
-
-                docs_by_exact_field = db.similarity_search(
-                    query,
-                    k=10,
-                    filter=qdrant_filter
-                )
-
-                exact_field_docs.extend(docs_by_exact_field)
-
-            if exact_field_docs:
-                print(
-                    f"[QDRANT EXACT FIELD BOOST]: Lấy thêm {len(exact_field_docs)} chunks "
-                    f"theo thủ tục '{detected_proc}' và field {field}"
-                )
-
-                final_docs = exact_field_docs + final_docs
 
         # 9. Tổng hợp Context
         seen = set()

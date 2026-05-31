@@ -8,9 +8,23 @@ langchain
 langchain-community
 langchain-google-genai
 sentence-transformers
+langchain-huggingface
+rapidfuzz
+
+# Vector Database
+qdrant-client
+langchain-qdrant
+
+# Legacy / Optional Vector Database
+# Có thể bỏ chromadb/faiss-cpu nếu project đã chuyển hoàn toàn sang Qdrant.
 chromadb
 faiss-cpu
 
 # Firebase & Utilities
 firebase-admin
 python-dotenv
+
+# Optional LLM fallback
+# Chỉ cần cài nếu muốn dùng Ollama/OpenRouter fallback.
+langchain-ollama
+langchain-openai

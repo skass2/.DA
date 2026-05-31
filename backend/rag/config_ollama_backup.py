@@ -2,10 +2,7 @@ import importlib.util
 import os
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-try:
-    from langchain_ollama import ChatOllama
-except Exception:
-    ChatOllama = None
+from langchain_community.chat_models import ChatOllama
 
 # optional fallback OpenRouter nếu có cài
 if importlib.util.find_spec("langchain_openai"):
@@ -86,28 +83,25 @@ def get_fallback_llms():
         llms.append(lightweight)
         print(f"[Fallback] Added {LIGHTWEIGHT_MODEL}")
 
-    # Ollama Local fallback
-    # Nếu máy không cài Ollama hoặc không cài langchain-ollama thì bỏ qua, không làm sập backend.
-    if ChatOllama is not None:
-        try:
-            llms.append(ChatOllama(
-                model="qwen2.5:7b",
-                temperature=LLM_TEMPERATURE,
-            ))
-            print("[Fallback] Added Ollama qwen2.5:7b")
-        except Exception as e:
-            print("[Fallback] Ollama qwen2.5:7b not available:", e)
+    # Qwen 2.5:7b Ollama Local
+    try:
+        llms.append(ChatOllama(
+            model="qwen2.5:7b",
+            temperature=LLM_TEMPERATURE,
+        ))
+        print("[Fallback] Added Ollama qwen2.5:7b")
+    except Exception as e:
+        print("[Fallback] Ollama qwen2.5:7b not available:", e)
 
-        try:
-            llms.append(ChatOllama(
-                model="llama3.2",
-                temperature=LLM_TEMPERATURE,
-            ))
-            print("[Fallback] Added Ollama llama3.2")
-        except Exception as e:
-            print("[Fallback] Ollama llama3.2 not available:", e)
-    else:
-        print("[Fallback] Skip Ollama because langchain_ollama is not installed.")
+    # Llama 3.2 Ollama Local
+    try:
+        llms.append(ChatOllama(
+            model="llama3.2",
+            temperature=LLM_TEMPERATURE,
+        ))
+        print("[Fallback] Added Ollama llama3.2")
+    except Exception as e:
+        print("[Fallback] Ollama llama3.2 not available:", e)
 
     # OpenRouter nếu có API key
     if ChatOpenAI:

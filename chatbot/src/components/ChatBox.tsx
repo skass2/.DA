@@ -3,9 +3,10 @@ import Message from "./Message";
 import InputBox from "./InputBox";
 import Sidebar from "./Sidebar";
 import type { ChatMessage } from "../types/chat";
-import { auth, signOut } from "../firebase";
+import { auth } from "../firebase";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { useLocation, useNavigate } from "react-router-dom";
+import UserMenu from "./UserMenu";
 
 interface ChatBoxProps {
   isAdmin?: boolean;
@@ -19,7 +20,6 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
   const [token, setToken] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>(`session-${Date.now()}`);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -46,9 +46,14 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
     }
   }, [location.state, token]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
+  // Lắng nghe sự kiện đổi tên từ UserMenu để cập nhật lại lời chào
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      if (auth.currentUser) setFirebaseUser({ ...auth.currentUser } as FirebaseUser);
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
 
   const toggleDarkMode = () => {
     const newMode = !darkMode;
@@ -160,46 +165,37 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1 h-full bg-[#f2f6fc] dark:bg-gray-900 transition-colors duration-500 relative">
         
-        {/* Hình mờ (Watermark) họa tiết trống đồng đặc trưng của Dịch vụ công */}
-        <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center opacity-5 dark:opacity-10 overflow-hidden">
-          <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/4/41/Dong_Son_bronze_drum_pattern.svg" 
-            alt="watermark" 
-            className="w-full max-w-2xl object-contain pointer-events-none select-none"
-          />
-        </div>
-
         {/* HEADER */}
-        <div className="relative z-10 flex justify-between items-center p-4 border-b bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm shrink-0 transition-colors duration-500">
-          <div className="flex items-center gap-3">
+        <div className="relative z-20 flex justify-between items-center p-2 sm:p-4 border-b bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm shrink-0 transition-colors duration-500 gap-2">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {firebaseUser && !isSidebarOpen && (
               <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 -ml-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300"
                 title="Mở thanh bên"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
             )}
             <button 
               onClick={() => navigate("/")}
-              className="p-2 -ml-2 sm:ml-0 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300 flex items-center gap-1"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300 flex items-center gap-1"
               title="Về Trang chủ"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-              <span className="hidden sm:inline text-sm font-medium">Trang chủ</span>
+              <span className="hidden lg:inline text-sm font-medium">Trang chủ</span>
             </button>
-            <div>
-              <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-500">Chatbot Thủ Tục</h3>
-              <p className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500">
+            <div className="hidden sm:block">
+              <h3 className="text-base sm:text-xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-500 whitespace-nowrap">Chatbot Thủ Tục</h3>
+              <p className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500 hidden md:block">
                 Sẵn sàng hỗ trợ bạn
               </p>
             </div>
           </div>
           
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-2 sm:gap-4 items-center shrink-1 justify-end">
             {/* Thanh tìm kiếm */}
-            <div className="hidden md:block">
+            <div className="hidden xl:block">
               <input 
                 type="text"
                 placeholder="Tra cứu thủ tục..."
@@ -211,41 +207,22 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
                 }}
               />
             </div>
-            {firebaseUser && (
-              <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-500 max-w-[150px] sm:max-w-[200px] truncate">
-                {firebaseUser.photoURL ? (
-                  <img src={firebaseUser.photoURL} alt="Avatar" className="w-7 h-7 rounded-full shadow-sm" />
-                ) : (
-                  <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {firebaseUser.displayName?.charAt(0).toUpperCase() || firebaseUser.email?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="text-gray-700 dark:text-gray-200 font-medium text-sm hidden sm:inline-block transition-colors duration-500">
-                  {firebaseUser.displayName || firebaseUser.email}
-                </span>
-              </div>
-            )}
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {isAdmin && (
-                <button onClick={() => navigate("/admin")} className="px-3 py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm mr-1">
+                <button onClick={() => navigate("/admin")} className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm whitespace-nowrap">
                   Quản trị
                 </button>
               )}
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all duration-500"
+                className="p-1.5 sm:p-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all duration-500"
                 title={darkMode ? "Bật chế độ sáng" : "Bật chế độ tối"}
               >
                 {darkMode ? "☀️" : "🌙"}
               </button>
-              <button 
-                onClick={() => setShowLogoutConfirm(true)} 
-                className="px-4 py-1.5 rounded bg-red-500 text-white font-medium hover:bg-red-600 transition-all duration-500 shadow-md text-sm"
-              >
-                Đăng xuất
-              </button>
             </div>
+            <UserMenu />
           </div>
         </div>
 
@@ -264,21 +241,6 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
                 <p className="text-gray-500 dark:text-gray-400 transition-colors duration-500">
                   Tôi có thể giúp gì cho bạn về các thủ tục hành chính hôm nay?
                 </p>
-                <div className="grid grid-cols-1 gap-2 pt-4">
-                  {[
-                    "Thủ tục làm hộ chiếu cần những gì?",
-                    "Hướng dẫn đăng ký tạm trú trực tuyến",
-                    "Cách tra cứu mã số thuế cá nhân"
-                  ].map((hint, i) => (
-                    <button
-                      key={i}
-                      onClick={() => sendMessage(hint)}
-                      className="text-sm px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 transition-all duration-500 shadow-sm"
-                    >
-                      "{hint}"
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -299,23 +261,6 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
           <InputBox onSend={sendMessage} loading={loading} />
         </div>
 
-        {/* Modal Xác nhận Đăng xuất */}
-        {showLogoutConfirm && (
-          <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6 text-center border border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Xác nhận đăng xuất</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Bạn có chắc chắn muốn thoát khỏi phiên làm việc?</p>
-              <div className="flex justify-center gap-4">
-                <button onClick={() => setShowLogoutConfirm(false)} className="px-6 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">
-                  Hủy
-                </button>
-                <button onClick={handleLogout} className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm">
-                  Đăng xuất
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

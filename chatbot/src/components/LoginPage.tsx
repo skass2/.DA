@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import { auth, googleProvider, signInWithPopup, signOut } from "../firebase";
 import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  updateProfile,
-  sendEmailVerification
+  signInWithEmailAndPassword
 } from "firebase/auth";
 
 export default function LoginPage() {

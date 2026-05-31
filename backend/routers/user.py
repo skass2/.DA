@@ -90,27 +90,27 @@ def get_chat_history(session_id: str, current_user: dict = Depends(get_current_u
 # ===== API DÀNH CHO 2 USE CASE XEM VÀ TRA CỨU =====
 
 @router.get("/procedures/search")
-def search_procedures(request: Request, q: str):
-    """Tra cứu thủ tục theo ngữ nghĩa dựa vào từ khóa hoặc nhu cầu đời thường"""
-    db = getattr(request.app.state, "db", None)
-    if not db or not q:
-        return {"results": []}
+def search_procedures(request: Request, q: str = ""):
+    """Tra cứu thủ tục theo từ khóa (tên thủ tục hoặc lĩnh vực) thay vì VectorDB để kết quả chính xác 100% cho trang Home"""
+    data = load_data()
+    results = []
+    q_lower = q.lower().strip()
         
-    # Tìm kiếm ngữ nghĩa trong VectorDB
-    docs = db.similarity_search(q, k=20)
-    
-    matched_procedures = {}
-    for d in docs:
-        p_id = d.metadata.get("id") or d.metadata.get("procedure_id")
-        p_name = d.metadata.get("name")
-        if p_id and p_name and p_id not in matched_procedures:
-            matched_procedures[p_id] = {
-                "id": p_id,
-                "name": p_name,
-                "linh_vuc": d.metadata.get("linh_vuc", "Chưa phân loại")
-            }
+    for item in data:
+        name = item.get("name", "")
+        content = item.get("content", {})
+        linh_vuc = content.get("Lĩnh vực", "Chưa phân loại") if isinstance(content, dict) else "Chưa phân loại"
+        if not linh_vuc:
+            linh_vuc = "Chưa phân loại"
             
-    return {"results": list(matched_procedures.values())[:10]} # Top 10
+        if not q_lower or q_lower in name.lower() or q_lower in linh_vuc.lower():
+            results.append({
+                "id": str(item.get("id")),
+                "name": name,
+                "linh_vuc": linh_vuc
+            })
+            
+    return {"results": results}
 
 @router.get("/procedures/{procedure_id}")
 def get_procedure_detail(procedure_id: str):

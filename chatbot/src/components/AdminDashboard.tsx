@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { auth, signOut } from "../firebase";
+import { auth } from "../firebase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useNavigate } from "react-router-dom";
+import UserMenu from "./UserMenu";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -21,7 +22,6 @@ export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<any>(null);
   const [formData, setFormData] = useState({ id: "", name: "", link: "", content: "{}" });
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [nlText, setNlText] = useState("");
   const [isConverting, setIsConverting] = useState(false);
@@ -376,21 +376,13 @@ export default function AdminDashboard() {
             🔐 Phân quyền
           </button>
         </nav>
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 rounded-lg transition-colors shadow-sm"
-          >
-            Đăng xuất
-          </button>
-        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative min-w-0">
         
         {/* Header (Chỉ có trong Quản trị để hiển thị Dark Mode & Chuyển Chat) */}
-        <div className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shrink-0 shadow-sm z-30">
+        <div className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shrink-0 shadow-sm z-30 relative">
           <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 text-gray-600 dark:text-gray-300">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
@@ -402,6 +394,7 @@ export default function AdminDashboard() {
             <button onClick={() => navigate("/chat")} className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300">
               Vào khung Chat
             </button>
+            <UserMenu />
           </div>
         </div>
 
@@ -799,24 +792,6 @@ export default function AdminDashboard() {
               </button>
               <button onClick={handleSaveDocument} disabled={loading} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium disabled:opacity-50">
                 {loading ? "Đang lưu..." : "Lưu lại"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Xác nhận Đăng xuất */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm p-6 text-center">
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Xác nhận đăng xuất</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">Bạn có chắc chắn muốn đăng xuất khỏi trang Quản trị?</p>
-            <div className="flex justify-center gap-4">
-              <button onClick={() => setShowLogoutConfirm(false)} className="px-6 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">
-                Hủy
-              </button>
-              <button onClick={() => signOut(auth)} className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm">
-                Đăng xuất
               </button>
             </div>
           </div>

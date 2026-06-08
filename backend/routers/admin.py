@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
-# API Admin: Khởi tạo lại ChromaDB nếu file JSON bị thay đổi
+# API Admin: Khởi tạo lại Qdrant nếu file JSON bị thay đổi
 @router.post("/reload-vectordb")
 def reload_vectordb(request: Request, current_admin: dict = Depends(get_admin_user)):
     try:
@@ -288,38 +288,113 @@ def _save_json(data):
     with open(PROCEDURES_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+
+def _rebuild_qdrant_from_current_json(request: Request) -> int:
+    """
+    Build lại Qdrant từ file procedures.json hiện tại.
+    Dùng sau khi admin thêm/sửa/xóa tài liệu để tránh tình trạng JSON đã đổi
+    nhưng vector DB vẫn dùng dữ liệu cũ.
+    """
+    data = _load_json()
+    chunks = create_chunks(data)
+
+    # Ngắt tham chiếu DB cũ trong RAM trước khi build lại collection.
+    request.app.state.db = None
+    request.app.state.db = build_vectorstore(chunks, backup=True)
+
+    return len(chunks)
+
+
 @router.post("/documents")
-def create_document(doc: ProcedureModel, current_admin: dict = Depends(get_admin_user)):
+def create_document(
+    doc: ProcedureModel,
+    request: Request,
+    current_admin: dict = Depends(get_admin_user)
+):
     try:
         data = _load_json()
-        new_doc = {"id": doc.id, "name": doc.name, "link": doc.link, "content": doc.content}
+
+        # Tránh thêm trùng mã thủ tục.
+        for item in data:
+            if str(item.get("id")) == str(doc.id):
+                return {
+                    "status": "error",
+                    "message": "Mã tài liệu/thủ tục đã tồn tại"
+                }
+
+        new_doc = {
+            "id": doc.id,
+            "name": doc.name,
+            "link": doc.link,
+            "content": doc.content
+        }
         data.append(new_doc)
         _save_json(data)
-        return {"status": "success", "message": "Thêm tài liệu thành công"}
+
+        total_chunks = _rebuild_qdrant_from_current_json(request)
+
+        return {
+            "status": "success",
+            "message": "Thêm tài liệu thành công và đã cập nhật Qdrant",
+            "chunks": total_chunks
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+
 @router.put("/documents/{doc_id}")
-def update_document(doc_id: str, doc: ProcedureModel, current_admin: dict = Depends(get_admin_user)):
+def update_document(
+    doc_id: str,
+    doc: ProcedureModel,
+    request: Request,
+    current_admin: dict = Depends(get_admin_user)
+):
     try:
         data = _load_json()
         for i, item in enumerate(data):
             if str(item.get("id")) == str(doc_id):
-                data[i] = {"id": doc.id, "name": doc.name, "link": doc.link, "content": doc.content}
+                data[i] = {
+                    "id": doc.id,
+                    "name": doc.name,
+                    "link": doc.link,
+                    "content": doc.content
+                }
                 _save_json(data)
-                return {"status": "success", "message": "Cập nhật tài liệu thành công"}
+
+                total_chunks = _rebuild_qdrant_from_current_json(request)
+
+                return {
+                    "status": "success",
+                    "message": "Cập nhật tài liệu thành công và đã cập nhật Qdrant",
+                    "chunks": total_chunks
+                }
+
         return {"status": "error", "message": "Không tìm thấy tài liệu"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+
 @router.delete("/documents/{doc_id}")
-def delete_document(doc_id: str, current_admin: dict = Depends(get_admin_user)):
+def delete_document(
+    doc_id: str,
+    request: Request,
+    current_admin: dict = Depends(get_admin_user)
+):
     try:
         data = _load_json()
         new_data = [item for item in data if str(item.get("id")) != str(doc_id)]
+
         if len(data) == len(new_data):
             return {"status": "error", "message": "Không tìm thấy tài liệu"}
+
         _save_json(new_data)
-        return {"status": "success", "message": "Xóa tài liệu thành công"}
+
+        total_chunks = _rebuild_qdrant_from_current_json(request)
+
+        return {
+            "status": "success",
+            "message": "Xóa tài liệu thành công và đã cập nhật Qdrant",
+            "chunks": total_chunks
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}

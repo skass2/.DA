@@ -6,25 +6,26 @@ pydantic
 # AI & RAG Pipeline
 langchain
 langchain-community
+langchain-core
 langchain-google-genai
-sentence-transformers
 langchain-huggingface
+langchain-text-splitters
+sentence-transformers
 rapidfuzz
 
-# Vector Database
+# Vector Database - Qdrant
 qdrant-client
 langchain-qdrant
-
-# Legacy / Optional Vector Database
-# Có thể bỏ chromadb/faiss-cpu nếu project đã chuyển hoàn toàn sang Qdrant.
-chromadb
-faiss-cpu
 
 # Firebase & Utilities
 firebase-admin
 python-dotenv
 
-# Optional LLM fallback
-# Chỉ cần cài nếu muốn dùng Ollama/OpenRouter fallback.
-langchain-ollama
-langchain-openai
+# Optional fallback LLM
+# Bỏ comment nếu bố muốn dùng OpenRouter fallback trong config.py.
+# langchain-openai
+
+# Legacy vector databases
+# Project hiện đã chuyển sang Qdrant, nên mặc định không cài Chroma/FAISS để nhẹ môi trường.
+# chromadb
+# faiss-cpu

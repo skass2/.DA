@@ -8,6 +8,35 @@ from routers.auth import get_current_user
 
 router = APIRouter(prefix="/user", tags=["User"])
 
+
+def make_json_safe(obj):
+    """
+    Chặn lỗi FastAPI không serialize được numpy.float32/numpy.int64 hoặc ndarray
+    lọt ra từ reranker/vector pipeline.
+    """
+    if isinstance(obj, dict):
+        return {str(k): make_json_safe(v) for k, v in obj.items()}
+
+    if isinstance(obj, list):
+        return [make_json_safe(v) for v in obj]
+
+    if isinstance(obj, tuple):
+        return [make_json_safe(v) for v in obj]
+
+    if hasattr(obj, "item") and callable(getattr(obj, "item")):
+        try:
+            return obj.item()
+        except Exception:
+            pass
+
+    if hasattr(obj, "tolist") and callable(getattr(obj, "tolist")):
+        try:
+            return obj.tolist()
+        except Exception:
+            pass
+
+    return obj
+
 # API Chat chuyển từ main.py sang, có thêm dependency get_current_user
 @router.get("/chat")
 def chat(request: Request, q: str, background_tasks: BackgroundTasks, session_id: str = "default", current_user: dict = Depends(get_current_user)):
@@ -23,15 +52,28 @@ def chat(request: Request, q: str, background_tasks: BackgroundTasks, session_id
         return {"answer": "Hệ thống đang khởi tạo dữ liệu, vui lòng đợi trong giây lát."}
 
     history = get_history(session_id)
-    answer = ask_rag(db=db, query=q, session_id=session_id, history=history)
+    rag_result = ask_rag(db=db, query=q, session_id=session_id, history=history)
+
+    if isinstance(rag_result, dict):
+        answer_text = rag_result.get("answer", "")
+    else:
+        answer_text = str(rag_result)
+        rag_result = {
+            "answer": answer_text,
+            "suggested_questions": [],
+            "selected_procedure": None,
+            "sources": [],
+            "procedure_candidates": [],
+        }
+
     elapsed_ms = int((time.perf_counter() - started_at) * 1000)
     print(f"[CHAT API] uid={uid} session_id={session_id} latency_ms={elapsed_ms}")
 
     # Đẩy UID và Session ID vào DB dưới dạng Background Task để phản hồi ngay lập tức cho web
     background_tasks.add_task(save_message, uid, session_id, "user", q)
-    background_tasks.add_task(save_message, uid, session_id, "bot", answer)
+    background_tasks.add_task(save_message, uid, session_id, "bot", answer_text)
 
-    return {"answer": answer}
+    return make_json_safe(rag_result)
 
 # ===== API LẤY DANH SÁCH LỊCH SỬ CHAT CHO SIDEBAR =====
 @router.get("/sessions")

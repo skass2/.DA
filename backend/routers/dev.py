@@ -39,7 +39,7 @@ def dev_chat(
             "error": "Chưa load được Qdrant collection."
         }
 
-    answer = ask_rag(
+    rag_result = ask_rag(
         db=db,
         query=q,
         session_id=session_id,
@@ -50,5 +50,6 @@ def dev_chat(
         "ok": True,
         "query": q,
         "session_id": session_id,
-        "answer": answer
+        "result": rag_result,
+        "answer": rag_result.get("answer", "") if isinstance(rag_result, dict) else str(rag_result),
     }

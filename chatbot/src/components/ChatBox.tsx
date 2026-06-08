@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Message from "./Message";
 import InputBox from "./InputBox";
 import Sidebar from "./Sidebar";
-import type { ChatMessage } from "../types/chat";
+import type { ChatApiResponse, ChatMessage } from "../types/chat";
 import { auth } from "../firebase";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -10,6 +10,19 @@ import UserMenu from "./UserMenu";
 
 interface ChatBoxProps {
   isAdmin?: boolean;
+}
+
+function getAnswerText(data: ChatApiResponse | any) {
+  if (typeof data?.answer === "string") return data.answer;
+  if (typeof data?.answer?.answer === "string") return data.answer.answer;
+  if (typeof data === "string") return data;
+  return "Không có phản hồi";
+}
+
+function normalizeSuggestions(data: ChatApiResponse | any) {
+  const raw = data?.suggested_questions || data?.answer?.suggested_questions || [];
+  if (!Array.isArray(raw)) return [];
+  return Array.from(new Set(raw.map((item) => String(item).trim()).filter(Boolean))).slice(0, 3);
 }
 
 export default function ChatBox({ isAdmin }: ChatBoxProps) {
@@ -22,6 +35,8 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const handledAnchorMessageRef = useRef<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -36,10 +51,16 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading]);
+
   // Bắt sự kiện chuyển hướng từ trang chi tiết thủ tục
   useEffect(() => {
     if (location.state && location.state.anchorMessage && token) {
-      const initMessage = location.state.anchorMessage;
+      const initMessage = String(location.state.anchorMessage);
+      if (handledAnchorMessageRef.current === initMessage) return;
+      handledAnchorMessageRef.current = initMessage;
       sendMessage(initMessage);
       // Xóa state để tránh gửi lại tin nhắn khi người dùng reload trang
       navigate(location.pathname, { replace: true, state: {} });
@@ -51,8 +72,8 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
     const handleProfileUpdate = () => {
       if (auth.currentUser) setFirebaseUser({ ...auth.currentUser } as FirebaseUser);
     };
-    window.addEventListener('profileUpdated', handleProfileUpdate);
-    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
   }, []);
 
   const toggleDarkMode = () => {
@@ -66,10 +87,13 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
   };
 
   const sendMessage = async (text: string) => {
+    const value = text.trim();
+    if (!value || loading) return;
+
     const userMsg: ChatMessage = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}`,
       role: "user",
-      content: text,
+      content: value,
       createdAt: Date.now(),
     };
 
@@ -79,7 +103,12 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
     if (!firebaseUser || !token) {
       setMessages((prev) => [
         ...prev,
-        { id: Date.now().toString(), role: "bot", content: "Lỗi xác thực, vui lòng tải lại trang.", createdAt: Date.now() },
+        {
+          id: `bot-auth-error-${Date.now()}`,
+          role: "bot",
+          content: "Lỗi xác thực, vui lòng tải lại trang.",
+          createdAt: Date.now(),
+        },
       ]);
       setLoading(false);
       return;
@@ -88,23 +117,37 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
       const res = await fetch(
-        `${apiUrl}/user/chat?q=${encodeURIComponent(text)}&session_id=${sessionId}`,
+        `${apiUrl}/user/chat?q=${encodeURIComponent(value)}&session_id=${encodeURIComponent(sessionId)}`,
         {
           headers: {
-            "Authorization": `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "true"
-          }
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true",
+          },
         }
       );
 
       if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-      const data = await res.json();
+      const data: ChatApiResponse = await res.json();
+
+      const nestedAnswer = typeof (data as any).answer === "object" && (data as any).answer !== null
+        ? (data as any).answer
+        : {};
 
       const botMsg: ChatMessage = {
-        id: Date.now().toString(),
+        id: `bot-${Date.now()}`,
         role: "bot",
-        content: data.answer || "Không có phản hồi",
+        content: getAnswerText(data),
         createdAt: Date.now(),
+        suggestedQuestions: normalizeSuggestions(data),
+        selectedProcedure: data.selected_procedure || nestedAnswer.selected_procedure || null,
+        sources: data.sources || nestedAnswer.sources || [],
+        showMetadata: Boolean(
+          data.show_metadata ??
+          data.showMetadata ??
+          nestedAnswer.show_metadata ??
+          nestedAnswer.showMetadata ??
+          ((data.selected_procedure || nestedAnswer.selected_procedure || (data.sources || nestedAnswer.sources || []).length > 0) ? true : false)
+        ),
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -112,37 +155,53 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
       console.error("FETCH ERROR:", err);
       setMessages((prev) => [
         ...prev,
-        { id: Date.now().toString(), role: "bot", content: "Lỗi kết nối server", createdAt: Date.now() },
+        {
+          id: `bot-server-error-${Date.now()}`,
+          role: "bot",
+          content: "Lỗi kết nối server. Vui lòng thử lại sau.",
+          createdAt: Date.now(),
+        },
       ]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  const lastBotMessageId = [...messages].reverse().find((m) => m.role === "bot")?.id;
 
   return (
     <div className="flex h-full w-full overflow-hidden transition-colors duration-500">
       {/* Sidebar */}
       {firebaseUser && (
-        <Sidebar 
+        <Sidebar
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          currentSessionId={sessionId} 
+          currentSessionId={sessionId}
           onSelectSession={async (id) => {
             setSessionId(id);
             setMessages([]);
             setLoading(true);
             try {
               const currentToken = await firebaseUser.getIdToken();
+              setToken(currentToken);
               const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-              const res = await fetch(`${apiUrl}/user/chat/history?session_id=${id}`, {
+              const res = await fetch(`${apiUrl}/user/chat/history?session_id=${encodeURIComponent(id)}`, {
                 headers: {
-                  "Authorization": `Bearer ${currentToken}`,
-                  "ngrok-skip-browser-warning": "true"
-                }
+                  Authorization: `Bearer ${currentToken}`,
+                  "ngrok-skip-browser-warning": "true",
+                },
               });
               if (res.ok) {
                 const data = await res.json();
                 if (data.messages && data.messages.length > 0) {
-                  setMessages(data.messages);
+                  setMessages(
+                    data.messages.map((msg: any) => ({
+                      id: String(msg.id || `${msg.role}-${Date.now()}-${Math.random()}`),
+                      role: msg.role === "user" ? "user" : "bot",
+                      content: String(msg.content || ""),
+                      createdAt: Number(msg.createdAt || Date.now()),
+                    }))
+                  );
                 }
               }
             } catch (error) {
@@ -150,26 +209,25 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
             } finally {
               setLoading(false);
             }
-          }} 
+          }}
         />
       )}
 
       {/* Lớp phủ cho Mobile khi mở Sidebar */}
       {isSidebarOpen && firebaseUser && (
-        <div 
-          className="fixed inset-0 bg-black/40 z-40 md:hidden" 
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
 
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1 h-full bg-[#f2f6fc] dark:bg-gray-900 transition-colors duration-500 relative">
-        
         {/* HEADER */}
         <div className="relative z-20 flex justify-between items-center p-2 sm:p-4 border-b bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm shrink-0 transition-colors duration-500 gap-2">
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {firebaseUser && !isSidebarOpen && (
-              <button 
+              <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300"
                 title="Mở thanh bên"
@@ -177,7 +235,7 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               </button>
             )}
-            <button 
+            <button
               onClick={() => navigate("/")}
               className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300 flex items-center gap-1"
               title="Về Trang chủ"
@@ -192,22 +250,22 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
               </p>
             </div>
           </div>
-          
+
           <div className="flex gap-2 sm:gap-4 items-center shrink-1 justify-end">
             {/* Thanh tìm kiếm */}
             <div className="hidden xl:block">
-              <input 
+              <input
                 type="text"
                 placeholder="Tra cứu thủ tục..."
                 className="px-4 py-1.5 text-sm rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 lg:w-64 transition-all duration-300"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                  if (e.key === "Enter" && e.currentTarget.value.trim()) {
                     navigate(`/?search=${encodeURIComponent(e.currentTarget.value.trim())}`);
                   }
                 }}
               />
             </div>
-            
+
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {isAdmin && (
                 <button onClick={() => navigate("/admin")} className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm whitespace-nowrap">
@@ -230,7 +288,12 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
         <div className="relative z-10 flex-1 overflow-y-auto p-6 transition-colors duration-500">
           {messages.length > 0 ? (
             messages.map((m) => (
-              <Message key={m.id} message={m} />
+              <Message
+                key={m.id}
+                message={m}
+                showSuggestions={m.id === lastBotMessageId && !loading}
+                onSuggestedQuestionClick={sendMessage}
+              />
             ))
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 transition-opacity duration-500">
@@ -254,13 +317,13 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
               <span>Bot đang gõ...</span>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* INPUT */}
         <div className="relative z-10 p-4 border-t bg-white dark:bg-gray-800 shrink-0 transition-colors duration-500">
           <InputBox onSend={sendMessage} loading={loading} />
         </div>
-
       </div>
     </div>
   );

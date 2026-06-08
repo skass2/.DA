@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import os
 import random
 
-BASE_URL = "https://dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc={}&open_popup=1"
+BASE_URL = "https://vpcp.dichvucong.gov.vn/p/home/dvc-tthc-thu-tuc-hanh-chinh-chi-tiet.html?ma_thu_tuc={}&open_popup=1"
 
 # Danh sách một vài User-Agent phổ biến để thay đổi luân phiên
 USER_AGENTS = [

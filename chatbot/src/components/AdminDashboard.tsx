@@ -4,6 +4,250 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useNavigate } from "react-router-dom";
 import UserMenu from "./UserMenu";
 
+type ContentMode = "markdown" | "json";
+
+const EMPTY_SECTION_TEXT = "Không có thông tin";
+const ARRAY_OBJECT_SECTIONS = new Set([
+  "Cách thức thực hiện",
+  "Thành phần hồ sơ",
+  "Phí",
+  "Lệ phí",
+  "Căn cứ pháp lý",
+]);
+
+const DEFAULT_PROCEDURE_CONTENT: Record<string, any> = {
+  "Tên thủ tục": "",
+  "Lĩnh vực": "",
+  "Đối tượng thực hiện": "",
+  "Cơ quan thực hiện": "",
+  "Kết quả thực hiện": "",
+  "Trình tự thực hiện": "",
+  "Yêu cầu điều kiện": "",
+  "Cách thức thực hiện": [],
+  "Thành phần hồ sơ": [],
+  "Phí": [],
+  "Lệ phí": [],
+  "Căn cứ pháp lý": [],
+};
+
+const isPlainObject = (value: any) => {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+};
+
+const cleanMdValue = (value: string) => {
+  const cleaned = value.trim();
+  if (!cleaned || cleaned === `_${EMPTY_SECTION_TEXT}_`) return "";
+  return cleaned;
+};
+
+const indentMultiline = (value: string, spaces = 2) => {
+  const prefix = " ".repeat(spaces);
+  return String(value)
+    .split("\n")
+    .map(line => `${prefix}${line}`)
+    .join("\n");
+};
+
+const objectToMarkdown = (obj: Record<string, any>) => {
+  const lines: string[] = [];
+
+  Object.entries(obj || {}).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      lines.push(`- ${key}:`);
+      if (value.length === 0) {
+        lines.push(`  - ${EMPTY_SECTION_TEXT}`);
+      } else {
+        value.forEach(item => lines.push(`  - ${String(item)}`));
+      }
+      return;
+    }
+
+    if (isPlainObject(value)) {
+      lines.push(`- ${key}:`);
+      Object.entries(value).forEach(([childKey, childValue]) => {
+        lines.push(`  - ${childKey}: ${String(childValue ?? "")}`);
+      });
+      return;
+    }
+
+    const text = String(value ?? "");
+    if (text.includes("\n")) {
+      lines.push(`- ${key}:`);
+      lines.push(indentMultiline(text));
+    } else {
+      lines.push(`- ${key}: ${text}`);
+    }
+  });
+
+  return lines.join("\n");
+};
+
+const valueToMarkdown = (key: string, value: any) => {
+  const lines: string[] = [`## ${key}`, ""];
+
+  if (value === null || value === undefined || value === "") {
+    lines.push(`_${EMPTY_SECTION_TEXT}_`);
+    return lines.join("\n");
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      lines.push(`_${EMPTY_SECTION_TEXT}_`);
+      return lines.join("\n");
+    }
+
+    value.forEach((item, index) => {
+      if (isPlainObject(item)) {
+        lines.push(`### ${key} ${index + 1}`);
+        lines.push(objectToMarkdown(item));
+        lines.push("");
+      } else {
+        lines.push(`- ${String(item)}`);
+      }
+    });
+
+    return lines.join("\n").trimEnd();
+  }
+
+  if (isPlainObject(value)) {
+    lines.push(objectToMarkdown(value));
+    return lines.join("\n");
+  }
+
+  lines.push(String(value));
+  return lines.join("\n");
+};
+
+const jsonToMarkdown = (content: Record<string, any>) => {
+  const safeContent = content || {};
+  return Object.entries(safeContent)
+    .map(([key, value]) => valueToMarkdown(key, value))
+    .join("\n\n");
+};
+
+const splitMarkdownSections = (markdown: string) => {
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  const sections: { title: string; body: string }[] = [];
+  let currentTitle = "";
+  let buffer: string[] = [];
+
+  lines.forEach(line => {
+    const match = line.match(/^##\s+(.+)\s*$/);
+    if (match) {
+      if (currentTitle) {
+        sections.push({ title: currentTitle, body: buffer.join("\n").trim() });
+      }
+      currentTitle = match[1].trim();
+      buffer = [];
+    } else if (currentTitle) {
+      buffer.push(line);
+    }
+  });
+
+  if (currentTitle) {
+    sections.push({ title: currentTitle, body: buffer.join("\n").trim() });
+  }
+
+  return sections;
+};
+
+const parseBulletObject = (body: string) => {
+  const obj: Record<string, any> = {};
+  const lines = body.replace(/\r\n/g, "\n").split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const match = line.match(/^-\s+([^:]+):\s*(.*)$/);
+    if (!match) continue;
+
+    const key = match[1].trim();
+    const inlineValue = match[2].trim();
+
+    if (inlineValue) {
+      obj[key] = cleanMdValue(inlineValue);
+      continue;
+    }
+
+    const nested: string[] = [];
+    let j = i + 1;
+    while (j < lines.length && !lines[j].match(/^-\s+[^:]+:/)) {
+      nested.push(lines[j]);
+      j++;
+    }
+    i = j - 1;
+
+    const nonEmpty = nested.filter(item => item.trim());
+    const nestedBullets = nonEmpty
+      .map(item => item.match(/^\s+-\s+(.+)$/)?.[1]?.trim())
+      .filter(Boolean) as string[];
+
+    if (nonEmpty.length > 0 && nestedBullets.length === nonEmpty.length) {
+      const cleaned = nestedBullets.filter(item => item !== EMPTY_SECTION_TEXT);
+      obj[key] = cleaned;
+    } else {
+      obj[key] = cleanMdValue(
+        nested
+          .map(item => item.replace(/^\s{2}/, ""))
+          .join("\n")
+      );
+    }
+  }
+
+  return obj;
+};
+
+const parseArrayObjects = (body: string) => {
+  const parts = body
+    .split(/^###\s+.+$/gm)
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  return parts.map(part => parseBulletObject(part));
+};
+
+const parseMarkdownSectionValue = (title: string, body: string) => {
+  const cleanedBody = cleanMdValue(body);
+
+  if (!cleanedBody) {
+    return ARRAY_OBJECT_SECTIONS.has(title) ? [] : "";
+  }
+
+  if (/^###\s+/m.test(cleanedBody)) {
+    return parseArrayObjects(cleanedBody);
+  }
+
+  const lines = cleanedBody.split("\n").filter(line => line.trim());
+  const bulletLines = lines.filter(line => line.trim().startsWith("- "));
+
+  if (ARRAY_OBJECT_SECTIONS.has(title)) {
+    if (bulletLines.length === lines.length) {
+      return bulletLines
+        .map(line => line.replace(/^\s*-\s+/, "").trim())
+        .filter(line => line && line !== EMPTY_SECTION_TEXT);
+    }
+    return [];
+  }
+
+  if (bulletLines.length === lines.length && bulletLines.some(line => line.includes(":"))) {
+    return parseBulletObject(cleanedBody);
+  }
+
+  return cleanedBody;
+};
+
+const markdownToJson = (markdown: string) => {
+  const sections = splitMarkdownSections(markdown);
+  if (sections.length === 0) {
+    throw new Error("Nội dung Markdown cần có tiêu đề mục dạng ## Tên trường");
+  }
+
+  return sections.reduce<Record<string, any>>((acc, section) => {
+    acc[section.title] = parseMarkdownSectionValue(section.title, section.body);
+    return acc;
+  }, {});
+};
+
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"stats" | "history" | "documents" | "admins">("stats");
@@ -22,6 +266,8 @@ export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<any>(null);
   const [formData, setFormData] = useState({ id: "", name: "", link: "", content: "{}" });
+  const [contentMode, setContentMode] = useState<ContentMode>("markdown");
+  const [mdContent, setMdContent] = useState("");
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [nlText, setNlText] = useState("");
   const [isConverting, setIsConverting] = useState(false);
@@ -160,24 +406,57 @@ export default function AdminDashboard() {
   // Mở modal thêm/sửa
   const handleOpenModal = (doc: any = null) => {
     setNlText("");
+    setContentMode("markdown");
+
     if (doc) {
+      const content = doc.content || {};
       setEditingDoc(doc);
       setFormData({
         id: String(doc.id),
         name: doc.name || "",
         link: doc.link || "",
-        content: JSON.stringify(doc.content || {}, null, 2)
+        content: JSON.stringify(content, null, 2)
       });
+      setMdContent(jsonToMarkdown(content));
     } else {
+      const defaultContent = {
+        ...DEFAULT_PROCEDURE_CONTENT,
+        "Tên thủ tục": "",
+      };
+
       setEditingDoc(null);
       setFormData({
         id: `DOC_${Date.now()}`,
         name: "",
         link: "",
-        content: "{\n  \"Lĩnh vực\": \"\",\n  \"Trình tự thực hiện\": \"\"\n}"
+        content: JSON.stringify(defaultContent, null, 2)
       });
+      setMdContent(jsonToMarkdown(defaultContent));
     }
+
     setIsModalOpen(true);
+  };
+
+  const switchContentMode = (nextMode: ContentMode) => {
+    if (nextMode === contentMode) return;
+
+    try {
+      if (nextMode === "json") {
+        const parsed = markdownToJson(mdContent);
+        setFormData(prev => ({ ...prev, content: JSON.stringify(parsed, null, 2) }));
+        setContentMode("json");
+      } else {
+        const parsed = JSON.parse(formData.content);
+        setMdContent(jsonToMarkdown(parsed));
+        setContentMode("markdown");
+      }
+    } catch (error) {
+      console.error(error);
+      alert(nextMode === "json"
+        ? "Không chuyển được Markdown sang JSON. Bố kiểm tra lại cấu trúc các mục bắt đầu bằng ## nhé."
+        : "Không chuyển được JSON sang Markdown. Bố kiểm tra JSON có hợp lệ không nhé."
+      );
+    }
   };
 
   // Hàm chuyển đổi NL sang JSON bằng AI
@@ -195,12 +474,17 @@ export default function AdminDashboard() {
       });
       if (data && data.status === "success") {
         try {
-          const formattedJson = JSON.stringify(JSON.parse(data.data), null, 2);
+          const parsed = JSON.parse(data.data);
+          const formattedJson = JSON.stringify(parsed, null, 2);
           setFormData(prev => ({ ...prev, content: formattedJson }));
+          setMdContent(jsonToMarkdown(parsed));
+          setContentMode("markdown");
         } catch (e) {
           setFormData(prev => ({ ...prev, content: data.data }));
+          setMdContent(data.data);
+          setContentMode("json");
         }
-        alert("Chuyển đổi thành công! Vui lòng kiểm tra lại nội dung JSON.");
+        alert("Chuyển đổi thành công! Nội dung đã được đưa về dạng Markdown để bố kiểm tra lại trước khi lưu.");
       } else {
         alert(data?.message || "Lỗi khi chuyển đổi");
       }
@@ -214,7 +498,10 @@ export default function AdminDashboard() {
   // Lưu tài liệu
   const handleSaveDocument = async () => {
     try {
-      const parsedContent = JSON.parse(formData.content);
+      const parsedContent = contentMode === "markdown"
+        ? markdownToJson(mdContent)
+        : JSON.parse(formData.content);
+
       const payload = {
         id: formData.id,
         name: formData.name,
@@ -241,7 +528,7 @@ export default function AdminDashboard() {
       setIsModalOpen(false);
       loadDocuments();
     } catch (error) {
-      alert("Lỗi: Kiểm tra lại định dạng JSON hoặc kết nối mạng.");
+      alert(contentMode === "markdown" ? "Lỗi: Kiểm tra lại định dạng Markdown hoặc kết nối mạng." : "Lỗi: Kiểm tra lại định dạng JSON hoặc kết nối mạng.");
       console.error(error);
     }
     setLoading(false);
@@ -776,14 +1063,50 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Nội dung chi tiết (Định dạng JSON)</label>
-                <textarea 
-                  value={formData.content} 
-                  onChange={e => setFormData({...formData, content: e.target.value})}
-                  rows={10}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 font-mono text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
-                ></textarea>
-                <p className="text-xs text-gray-500 mt-1">Lưu ý: Nội dung phải là một JSON hợp lệ chứa các trường như: Lĩnh vực, Thời hạn giải quyết, Trình tự thực hiện,...</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                  <label className="block text-sm font-medium">Nội dung chi tiết</label>
+                  <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden w-fit">
+                    <button
+                      type="button"
+                      onClick={() => switchContentMode("markdown")}
+                      className={`px-3 py-1 text-xs font-medium ${contentMode === "markdown" ? "bg-blue-600 text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                    >
+                      Markdown dễ đọc
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => switchContentMode("json")}
+                      className={`px-3 py-1 text-xs font-medium border-l border-gray-300 dark:border-gray-600 ${contentMode === "json" ? "bg-blue-600 text-white" : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                    >
+                      JSON gốc
+                    </button>
+                  </div>
+                </div>
+
+                {contentMode === "markdown" ? (
+                  <textarea 
+                    value={mdContent} 
+                    onChange={e => setMdContent(e.target.value)}
+                    rows={16}
+                    spellCheck={false}
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded p-3 text-sm leading-6 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
+                  ></textarea>
+                ) : (
+                  <textarea 
+                    value={formData.content} 
+                    onChange={e => setFormData({...formData, content: e.target.value})}
+                    rows={16}
+                    spellCheck={false}
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 font-mono text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
+                  ></textarea>
+                )}
+
+                <p className="text-xs text-gray-500 mt-1">
+                  Bố có thể sửa ở dạng Markdown cho dễ đọc. Khi lưu, hệ thống tự chuyển nội dung này về JSON để gửi lên backend và build lại Qdrant.
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Quy ước nhanh: mỗi mục lớn bắt đầu bằng ##, ví dụ ## Lĩnh vực, ## Thành phần hồ sơ, ## Căn cứ pháp lý.
+                </p>
               </div>
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">

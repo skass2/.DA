@@ -1,0 +1,652 @@
+﻿conversation_id,test_id,procedure_id,procedure_name,previous_context,question,test_level_note,_extra_columns,endpoint,run_mode,rerun_reason,previous_latency_ms,session_id_used,context_replay_count,context_replay_statuses,context_replay_latencies_ms,context_replay_total_ms,http_status,ket_qua,thoi_gian_ms,thoi_gian_giay,answer,latency_ms,error_detail,auto_need_review,retrieval_top_k_ok,answer_correctness,rejection_correctness,evidence_file,avg_latency_ms
+2.001263,T01,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Hồ sơ của thủ tục Đăng ký việc nuôi con nuôi trong nước gồm những giấy tờ gì?,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",1443,1.443,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",1443,,yes,,,,,
+2.001263,T02,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Thành phần hồ sơ khi làm thủ tục Đăng ký việc nuôi con nuôi trong nước cần chuẩn bị những gì?,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",613,0.613,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",613,,yes,,,,,
+2.001263,T03,2.001263,Đăng ký việc nuôi con nuôi trong nước,,"Tôi muốn làm thủ tục Đăng ký việc nuôi con nuôi trong nước, cần nộp những giấy tờ nào?","Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",675,0.675,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",675,,yes,,,,,
+2.001263,T04,2.001263,Đăng ký việc nuôi con nuôi trong nước,,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, giấy tờ chính trong hồ sơ là gì?","Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",570,0.57,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",570,,yes,,,,,
+2.001263,T05,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Hồ sơ đăng ký nuôi con nuôi trong nước có cần Đơn xin nhận con nuôi không?,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",618,0.618,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",618,,yes,,,,,
+2.001263,T06,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Khi trẻ bị bỏ rơi thì hồ sơ của thủ tục Đăng ký việc nuôi con nuôi trong nước cần giấy tờ gì?,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",594,0.594,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",594,,yes,,,,,
+2.001263,T07,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Thủ tục Đăng ký việc nuôi con nuôi trong nước có yêu cầu Giấy khai sinh trong hồ sơ không?,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, mình tóm tắt các phần bạn hỏi như sau:
+
+1. Hồ sơ cần chuẩn bị:
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",577,0.577,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, mình tóm tắt các phần bạn hỏi như sau:
+
+1. Hồ sơ cần chuẩn bị:
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",577,,yes,,,,,
+2.001263,T08,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Tôi cần chuẩn bị hồ sơ gì trước khi nộp thủ tục Đăng ký việc nuôi con nuôi trong nước?,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",572,0.572,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",572,,yes,,,,,
+2.001263,T09,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Vậy phần hồ sơ cần mang theo gồm những gì?,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,200,11111,11111,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",10986,10.986,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",10986,,yes,,,,,
+2.001263,T10,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Tóm tắt giúp tôi các giấy tờ cần chuẩn bị cho việc nhận con nuôi trong nước.,"Level 1: Hồ sơ trực diện, có khóa procedure_id/name",,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",556,0.556,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, bạn chuẩn bị các giấy tờ chính sau:
+
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",556,,yes,,,,,
+2.001263,T11,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước là bao nhiêu?,Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",544,0.544,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",544,,yes,,,,,
+2.001263,T12,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Phí/lệ phí khi đăng ký việc nuôi con nuôi trong nước là bao nhiêu tiền?,Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",564,0.564,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",564,,yes,,,,,
+2.001263,T13,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Làm thủ tục Đăng ký việc nuôi con nuôi trong nước có phải đóng 400.000 đồng không?,Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Chào bạn, đúng rồi ạ. Phí/lệ phí cho thủ tục Đăng ký việc nuôi con nuôi trong nước là 400.000 đồng.
+
+Tuy nhiên, có một số trường hợp được miễn lệ phí này, ví dụ như cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi, hoặc cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.",1916,1.916,"Chào bạn, đúng rồi ạ. Phí/lệ phí cho thủ tục Đăng ký việc nuôi con nuôi trong nước là 400.000 đồng.
+
+Tuy nhiên, có một số trường hợp được miễn lệ phí này, ví dụ như cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi, hoặc cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.",1916,,yes,,,,,
+2.001263,T14,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Tôi muốn biết mức phí phải nộp cho thủ tục Đăng ký việc nuôi con nuôi trong nước.,Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",585,0.585,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",585,,yes,,,,,
+2.001263,T15,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Nhận con nuôi trong nước thì lệ phí đăng ký là bao nhiêu?,Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",583,0.583,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",583,,yes,,,,,
+2.001263,T16,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Thủ tục Đăng ký việc nuôi con nuôi trong nước có trường hợp nào được miễn lệ phí không?,Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",545,0.545,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",545,,yes,,,,,
+2.001263,T17,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Dì ruột nhận cháu làm con nuôi thì phần lệ phí được tính thế nào?,Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",582,0.582,"Về phí/lệ phí của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- Dịch vụ bưu chính: 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi;...
+- Trực tiếp: 400.000 Việt Nam đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...
+- 400.000 Việt Nam đồng (Lệ phí : 400.000 đồng (Mức thu lệ phí: 400.000đ/trường hợp. Miễn lệ phí đăng ký nuôi con nuôi trong nước đối với trường hợp cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi; cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi;...",582,,yes,,,,,
+2.001263,T18,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,"Tôi nghe nói lệ phí nhận con nuôi là 5 triệu đồng, có đúng không?",Level 1-4: Phí/lệ phí trực diện và bẫy số tiền,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Chào bạn, về lệ phí đăng ký việc nuôi con nuôi trong nước, mức phí là 400.000 đồng cho mỗi trường hợp. Có một số trường hợp được miễn lệ phí này, ví dụ như cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi, hoặc cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.",2044,2.044,"Chào bạn, về lệ phí đăng ký việc nuôi con nuôi trong nước, mức phí là 400.000 đồng cho mỗi trường hợp. Có một số trường hợp được miễn lệ phí này, ví dụ như cha dượng hoặc mẹ kế nhận con riêng của vợ hoặc chồng làm con nuôi, hoặc cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.",2044,,yes,,,,,
+2.001263,T19,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Yêu cầu điều kiện đối với người nhận con nuôi trong thủ tục Đăng ký việc nuôi con nuôi trong nước là gì?,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Chào bạn, về yêu cầu điều kiện đối với người nhận con nuôi trong thủ tục Đăng ký việc nuôi con nuôi trong nước, người nhận con nuôi cần đáp ứng các điều kiện sau:
+- Có năng lực hành vi dân sự đầy đủ.
+- Hơn con nuôi từ 20 tuổi trở lên (trừ trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi).
+- Có điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng, giáo dục con nuôi (trừ trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi).
+- Có tư cách đạo đức tốt.",2419,2.419,"Chào bạn, về yêu cầu điều kiện đối với người nhận con nuôi trong thủ tục Đăng ký việc nuôi con nuôi trong nước, người nhận con nuôi cần đáp ứng các điều kiện sau:
+- Có năng lực hành vi dân sự đầy đủ.
+- Hơn con nuôi từ 20 tuổi trở lên (trừ trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi).
+- Có điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng, giáo dục con nuôi (trừ trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi).
+- Có tư cách đạo đức tốt.",2419,,yes,,,,,
+2.001263,T20,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Người nhận con nuôi trong nước cần đáp ứng điều kiện gì?,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Chào bạn, về điều kiện đối với người nhận con nuôi trong nước, bạn cần đáp ứng các điều kiện sau:
+- Có năng lực hành vi dân sự đầy đủ.
+- Hơn con nuôi từ 20 tuổi trở lên. Trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi thì không áp dụng điều kiện này.
+- Có điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng, giáo dục con nuôi. Trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi cũng không áp dụng điều kiện này.
+- Có tư cách đạo đức tốt.",4234,4.234,"Chào bạn, về điều kiện đối với người nhận con nuôi trong nước, bạn cần đáp ứng các điều kiện sau:
+- Có năng lực hành vi dân sự đầy đủ.
+- Hơn con nuôi từ 20 tuổi trở lên. Trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi thì không áp dụng điều kiện này.
+- Có điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng, giáo dục con nuôi. Trường hợp cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi cũng không áp dụng điều kiện này.
+- Có tư cách đạo đức tốt.",4234,,yes,,,,,
+2.001263,T21,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Thủ tục Đăng ký việc nuôi con nuôi trong nước yêu cầu người nhận con nuôi hơn con nuôi bao nhiêu tuổi?,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Chào bạn, về yêu cầu độ tuổi đối với người nhận con nuôi trong thủ tục Đăng ký việc nuôi con nuôi trong nước, người nhận con nuôi cần hơn con nuôi từ 20 tuổi trở lên. Tuy nhiên, điều này không áp dụng trong trường hợp cha dượng, mẹ kế hoặc cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.",2200,2.2,"Chào bạn, về yêu cầu độ tuổi đối với người nhận con nuôi trong thủ tục Đăng ký việc nuôi con nuôi trong nước, người nhận con nuôi cần hơn con nuôi từ 20 tuổi trở lên. Tuy nhiên, điều này không áp dụng trong trường hợp cha dượng, mẹ kế hoặc cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.",2200,,yes,,,,,
+2.001263,T22,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Người đang chấp hành hình phạt tù có được nhận con nuôi trong nước không?,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Chào bạn, về trường hợp người đang chấp hành hình phạt tù thì không được nhận con nuôi trong nước bạn nhé.",3172,3.172,"Chào bạn, về trường hợp người đang chấp hành hình phạt tù thì không được nhận con nuôi trong nước bạn nhé.",3172,,yes,,,,,
+2.001263,T23,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Tôi độc thân thì có được nhận con nuôi trong nước không?,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Chào bạn, về việc bạn độc thân có được nhận con nuôi trong nước hay không, theo quy định thì một người chỉ được làm con của một người độc thân hoặc của cả hai người là vợ chồng. Như vậy, nếu bạn độc thân thì vẫn có thể nhận con nuôi trong nước nhé.",2088,2.088,"Chào bạn, về việc bạn độc thân có được nhận con nuôi trong nước hay không, theo quy định thì một người chỉ được làm con của một người độc thân hoặc của cả hai người là vợ chồng. Như vậy, nếu bạn độc thân thì vẫn có thể nhận con nuôi trong nước nhé.",2088,,yes,,,,,
+2.001263,T24,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Tôi 18 tuổi thì đã đủ điều kiện nhận con nuôi đúng không?,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Chào bạn, theo quy định về điều kiện nhận con nuôi trong nước, người nhận con nuôi cần hơn con nuôi từ 20 tuổi trở lên. Do đó, nếu bạn 18 tuổi thì chưa đủ điều kiện để nhận con nuôi bạn nhé.",6763,6.763,"Chào bạn, theo quy định về điều kiện nhận con nuôi trong nước, người nhận con nuôi cần hơn con nuôi từ 20 tuổi trở lên. Do đó, nếu bạn 18 tuổi thì chưa đủ điều kiện để nhận con nuôi bạn nhé.",6763,,yes,,,,,
+2.001263,T25,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Tôi muốn nhận người 25 tuổi làm con nuôi thì có được không?,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Chào bạn, theo quy định về điều kiện nhận con nuôi trong nước, trẻ em được nhận làm con nuôi phải dưới 16 tuổi. Trong một số trường hợp đặc biệt như cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận làm con nuôi thì trẻ em đó phải dưới 18 tuổi.
+
+Do đó, nếu bạn muốn nhận người 25 tuổi làm con nuôi thì không được bạn nhé.",3222,3.222,"Chào bạn, theo quy định về điều kiện nhận con nuôi trong nước, trẻ em được nhận làm con nuôi phải dưới 16 tuổi. Trong một số trường hợp đặc biệt như cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận làm con nuôi thì trẻ em đó phải dưới 18 tuổi.
+
+Do đó, nếu bạn muốn nhận người 25 tuổi làm con nuôi thì không được bạn nhé.",3222,,yes,,,,,
+2.001263,T26,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,"Nhận cháu ruột làm con nuôi thì có phải đáp ứng điều kiện sức khỏe, kinh tế, chỗ ở không?",Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Chào bạn, về trường hợp nhận cháu ruột làm con nuôi, điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng, giáo dục con nuôi sẽ không áp dụng bạn nhé.",1612,1.612,"Chào bạn, về trường hợp nhận cháu ruột làm con nuôi, điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng, giáo dục con nuôi sẽ không áp dụng bạn nhé.",1612,,yes,,,,,
+2.001263,T27,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Tóm tắt điều kiện quan trọng nhất để được nhận con nuôi trong nước giúp tôi.,Level 2-4: Điều kiện và câu bẫy nhẹ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Chào bạn, để được nhận con nuôi trong nước, có một số điều kiện quan trọng mà bạn cần lưu ý như sau:
+- Người nhận con nuôi cần có năng lực hành vi dân sự đầy đủ, có tư cách đạo đức tốt. Bạn cũng cần hơn con nuôi từ 20 tuổi trở lên và có điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng. Tuy nhiên, các điều kiện về tuổi, sức khỏe, kinh tế, chỗ ở sẽ không áp dụng nếu bạn là cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.
+- Trẻ em được nhận làm con nuôi phải dưới 16 tuổi. Nếu là con riêng của vợ/chồng hoặc cháu ruột thì trẻ em đó phải dưới 18 tuổi. Trẻ em cũng cần là trẻ bị bỏ rơi, mồ côi hoặc không nơi nương tựa.
+- Ngoài ra, có một số trường hợp không được nhận con nuôi như đang bị hạn chế quyền cha mẹ, đang chấp hành hình phạt tù hoặc chưa được xóa án tích về một số tội.",6423,6.423,"Chào bạn, để được nhận con nuôi trong nước, có một số điều kiện quan trọng mà bạn cần lưu ý như sau:
+- Người nhận con nuôi cần có năng lực hành vi dân sự đầy đủ, có tư cách đạo đức tốt. Bạn cũng cần hơn con nuôi từ 20 tuổi trở lên và có điều kiện về sức khỏe, kinh tế, chỗ ở để đảm bảo việc chăm sóc, nuôi dưỡng. Tuy nhiên, các điều kiện về tuổi, sức khỏe, kinh tế, chỗ ở sẽ không áp dụng nếu bạn là cha dượng, mẹ kế, cô, cậu, dì, chú, bác ruột nhận cháu làm con nuôi.
+- Trẻ em được nhận làm con nuôi phải dưới 16 tuổi. Nếu là con riêng của vợ/chồng hoặc cháu ruột thì trẻ em đó phải dưới 18 tuổi. Trẻ em cũng cần là trẻ bị bỏ rơi, mồ côi hoặc không nơi nương tựa.
+- Ngoài ra, có một số trường hợp không được nhận con nuôi như đang bị hạn chế quyền cha mẹ, đang chấp hành hình phạt tù hoặc chưa được xóa án tích về một số tội.",6423,,yes,,,,,
+2.001263,T28,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Kết quả thực hiện của thủ tục Đăng ký việc nuôi con nuôi trong nước là giấy tờ gì?,"Level 1-2: Kết quả thực hiện, tránh hỏi mơ hồ",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, mình tóm tắt các phần bạn hỏi như sau:
+
+1. Hồ sơ cần chuẩn bị:
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.
+
+2. Kết quả nhận được:
+Hiện dữ liệu chưa ghi thông tin kết quả thực hiện cho thủ tục Đăng ký việc nuôi con nuôi trong nước.
+
+Bạn có thể hỏi tiếp phần hồ sơ, nơi nộp hoặc thời hạn. Khi đi nộp hồ sơ, bạn nên hỏi lại bộ phận một cửa để chắc chắn nhất.",574,0.574,"Với thủ tục Đăng ký việc nuôi con nuôi trong nước, mình tóm tắt các phần bạn hỏi như sau:
+
+1. Hồ sơ cần chuẩn bị:
+1. Đơn xin nhận con nuôi;
+Số lượng: 1 bản chính
+
+2. Biên bản xác nhận do Ủy ban nhân dân hoặc Công an cấp xã nơi phát hiện trẻ bị bỏ rơi lập đối với trẻ em bị bỏ rơi; Giấy chứng tử của cha đẻ, mẹ đẻ hoặc quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của trẻ em là đã chết đối với trẻ em mồ côi; quyết định của Tòa án tuyên bố cha đẻ, mẹ đẻ của người được giới thiệu làm con nuôi mất tích đối với người được giới thiệu làm con nuôi mà cha đẻ, mẹ đẻ mất tích;...
+Số lượng: 1 bản chính
+
+3. Giấy khai sinh;
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.
+
+2. Kết quả nhận được:
+Hiện dữ liệu chưa ghi thông tin kết quả thực hiện cho thủ tục Đăng ký việc nuôi con nuôi trong nước.
+
+Bạn có thể hỏi tiếp phần hồ sơ, nơi nộp hoặc thời hạn. Khi đi nộp hồ sơ, bạn nên hỏi lại bộ phận một cửa để chắc chắn nhất.",574,,yes,,,,,
+2.001263,T29,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Làm xong thủ tục Đăng ký việc nuôi con nuôi trong nước thì tôi nhận được giấy gì?,"Level 1-2: Kết quả thực hiện, tránh hỏi mơ hồ",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Kết quả nhận được của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Giấy chứng nhận nuôi con nuôi trong nước",583,0.583,"Kết quả nhận được của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Giấy chứng nhận nuôi con nuôi trong nước",583,,yes,,,,,
+2.001263,T30,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Sau khi đăng ký nhận con nuôi trong nước xong thì kết quả trả về là gì?,"Level 1-2: Kết quả thực hiện, tránh hỏi mơ hồ",,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Kết quả nhận được của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Giấy chứng nhận nuôi con nuôi trong nước",585,0.585,"Kết quả nhận được của thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Giấy chứng nhận nuôi con nuôi trong nước",585,,yes,,,,,
+2.001263,T31,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Thủ tục Đăng ký việc nuôi con nuôi trong nước có phải giải quyết đúng 30 ngày không?,"Level 4: Thời hạn dạng đính chính, pipeline từng trả ổn hơn câu hỏi ngắn",,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Dạ, về thời hạn giải quyết cho thủ tục Đăng ký việc nuôi con nuôi trong nước, em xin thông tin như sau ạ:
+
+Thời gian xác minh, đánh giá hoàn cảnh: 05 ngày làm việc.
+Thời gian kiểm tra hồ sơ và lấy ý kiến: 10 ngày.
+Thời gian những người liên quan thay đổi ý kiến đồng ý: 15 ngày.
+Thời gian tổ chức đăng ký và trao Giấy chứng nhận: 05 ngày.
+
+Tổng thời gian giải quyết sẽ bao gồm các khoảng thời gian này ạ.",2097,2.097,"Dạ, về thời hạn giải quyết cho thủ tục Đăng ký việc nuôi con nuôi trong nước, em xin thông tin như sau ạ:
+
+Thời gian xác minh, đánh giá hoàn cảnh: 05 ngày làm việc.
+Thời gian kiểm tra hồ sơ và lấy ý kiến: 10 ngày.
+Thời gian những người liên quan thay đổi ý kiến đồng ý: 15 ngày.
+Thời gian tổ chức đăng ký và trao Giấy chứng nhận: 05 ngày.
+
+Tổng thời gian giải quyết sẽ bao gồm các khoảng thời gian này ạ.",2097,,yes,,,,,
+2.001263,T32,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,Đăng ký nhận con nuôi trong nước có các mốc thời gian xử lý nào?,"Level 4: Thời hạn dạng đính chính, pipeline từng trả ổn hơn câu hỏi ngắn",,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Thời hạn giải quyết thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: Không có thông tin
+- Dịch vụ bưu chính: Không có thông tin
+- Trực tiếp: Không có thông tin",564,0.564,"Thời hạn giải quyết thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến: Không có thông tin
+- Dịch vụ bưu chính: Không có thông tin
+- Trực tiếp: Không có thông tin",564,,yes,,,,,
+2.001263,T33,2.001263,Đăng ký việc nuôi con nuôi trong nước,Tôi đang hỏi về thủ tục Đăng ký việc nuôi con nuôi trong nước.,"Tôi nghe nói nhận con nuôi trong nước chỉ có một mốc 30 ngày, đúng không?","Level 4: Thời hạn dạng đính chính, pipeline từng trả ổn hơn câu hỏi ngắn",,user,RUN_FORCED,no_resume,,test_proc_2.001263,1,SKIP_DUP_CONTEXT,0,0,200,"Dạ, không phải chỉ có một mốc 30 ngày đâu ạ. Thủ tục Đăng ký việc nuôi con nuôi trong nước có các mốc thời gian xử lý như sau:
+- Thời gian xác minh, đánh giá hoàn cảnh: 05 ngày làm việc.
+- Thời gian kiểm tra hồ sơ và lấy ý kiến: 10 ngày.
+- Thời gian những người liên quan thay đổi ý kiến đồng ý: 15 ngày.
+- Thời gian tổ chức đăng ký và trao Giấy chứng nhận: 05 ngày.
+
+Tổng thời gian giải quyết sẽ bao gồm các khoảng thời gian này ạ.",4606,4.606,"Dạ, không phải chỉ có một mốc 30 ngày đâu ạ. Thủ tục Đăng ký việc nuôi con nuôi trong nước có các mốc thời gian xử lý như sau:
+- Thời gian xác minh, đánh giá hoàn cảnh: 05 ngày làm việc.
+- Thời gian kiểm tra hồ sơ và lấy ý kiến: 10 ngày.
+- Thời gian những người liên quan thay đổi ý kiến đồng ý: 15 ngày.
+- Thời gian tổ chức đăng ký và trao Giấy chứng nhận: 05 ngày.
+
+Tổng thời gian giải quyết sẽ bao gồm các khoảng thời gian này ạ.",4606,,yes,,,,,
+2.001263,T34,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Căn cứ pháp lý của thủ tục Đăng ký việc nuôi con nuôi trong nước gồm những văn bản nào?,Level 1-2: Pháp lý/cách thức có từ khóa rõ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Dạ, về căn cứ pháp lý của thủ tục Đăng ký việc nuôi con nuôi trong nước, em xin thông tin các văn bản sau ạ:
+- Nghị định số 120/2025/NĐ-CP ngày 11/6/2025 của Chính phủ quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp trong lĩnh vực quản lý nhà nước của Bộ Tư pháp.
+- Nghị định số 18/2026/NĐ-CP sửa đổi, bổ sung một số nghị định để cắt giảm, đơn giản hóa thủ tục hành chính, điều kiện kinh doanh thuộc phạm vi quản lý của Bộ Tư pháp.
+- Nghị định số 104/2022/NĐ-CP sửa đổi, bổ sung một số điều của các Nghị định liên quan đến việc nộp xuất trình sổ hộ khẩu, sổ tạm trú giấy khi thực hiện thủ tục hành chính, cung cấp dịch vụ công.
+- Thông tư số 10/2020/TT-BTP BAN HÀNH, HƯỚNG DẪN VIỆC GHI CHÉP, SỬ DỤNG, QUẢN LÝ VÀ LƯU TRỮ SỔ, MẪU GIẤY TỜ, HỒ SƠ NUÔI CON NUÔI.
+- Thông tư số 07/2023/TT-BTP SỬA ĐỔI, BỔ SUNG MỘT SỐ ĐIỀU CỦA THÔNG TƯ SỐ 10/2020/TT-BTP NGÀY 28 THÁNG 12 NĂM 2020 CỦA BỘ TRƯỞNG BỘ TƯ PHÁP BAN HÀNH, HƯỚNG DẪN VIỆC GHI CHÉP, SỬ DỤNG, QUẢN LÝ VÀ LƯU TRỮ SỔ, MẪU GIẤY TỜ, HỒ SƠ NUÔI CON NUÔI.",6054,6.054,"Dạ, về căn cứ pháp lý của thủ tục Đăng ký việc nuôi con nuôi trong nước, em xin thông tin các văn bản sau ạ:
+- Nghị định số 120/2025/NĐ-CP ngày 11/6/2025 của Chính phủ quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp trong lĩnh vực quản lý nhà nước của Bộ Tư pháp.
+- Nghị định số 18/2026/NĐ-CP sửa đổi, bổ sung một số nghị định để cắt giảm, đơn giản hóa thủ tục hành chính, điều kiện kinh doanh thuộc phạm vi quản lý của Bộ Tư pháp.
+- Nghị định số 104/2022/NĐ-CP sửa đổi, bổ sung một số điều của các Nghị định liên quan đến việc nộp xuất trình sổ hộ khẩu, sổ tạm trú giấy khi thực hiện thủ tục hành chính, cung cấp dịch vụ công.
+- Thông tư số 10/2020/TT-BTP BAN HÀNH, HƯỚNG DẪN VIỆC GHI CHÉP, SỬ DỤNG, QUẢN LÝ VÀ LƯU TRỮ SỔ, MẪU GIẤY TỜ, HỒ SƠ NUÔI CON NUÔI.
+- Thông tư số 07/2023/TT-BTP SỬA ĐỔI, BỔ SUNG MỘT SỐ ĐIỀU CỦA THÔNG TƯ SỐ 10/2020/TT-BTP NGÀY 28 THÁNG 12 NĂM 2020 CỦA BỘ TRƯỞNG BỘ TƯ PHÁP BAN HÀNH, HƯỚNG DẪN VIỆC GHI CHÉP, SỬ DỤNG, QUẢN LÝ VÀ LƯU TRỮ SỔ, MẪU GIẤY TỜ, HỒ SƠ NUÔI CON NUÔI.",6054,,yes,,,,,
+2.001263,T35,2.001263,Đăng ký việc nuôi con nuôi trong nước,,Thủ tục Đăng ký việc nuôi con nuôi trong nước có thể thực hiện theo những hình thức nào?,Level 1-2: Pháp lý/cách thức có từ khóa rõ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Cách thực hiện thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",613,0.613,"Cách thực hiện thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",613,,yes,,,,,
+2.001263,T36,2.001263,Đăng ký việc nuôi con nuôi trong nước,,"Tôi có thể nộp thủ tục Đăng ký việc nuôi con nuôi trong nước trực tuyến, trực tiếp hoặc qua bưu chính không?",Level 1-2: Pháp lý/cách thức có từ khóa rõ,,user,RUN_FORCED,no_resume,,test_proc_2.001263,0,,,,200,"Cách thực hiện thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",593,0.593,"Cách thực hiện thủ tục Đăng ký việc nuôi con nuôi trong nước:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",593,,yes,,,,,
+2.000575,T37,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Lệ phí của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh là bao nhiêu?","Level 1-4: Phí/lệ phí, dùng full tên thủ tục để tránh nhầm",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Về phí/lệ phí của thủ tục Đăng ký thay đổi nội dung đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",605,0.605,"Về phí/lệ phí của thủ tục Đăng ký thay đổi nội dung đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",605,,yes,,,,,
+2.000575,T38,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,Phí/lệ phí cấp lại hoặc cấp đổi Giấy chứng nhận đăng ký hộ kinh doanh là bao nhiêu?,"Level 1-4: Phí/lệ phí, dùng full tên thủ tục để tránh nhầm",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Về phí/lệ phí của thủ tục Đăng ký thay đổi nội dung đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",563,0.563,"Về phí/lệ phí của thủ tục Đăng ký thay đổi nội dung đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",563,,yes,,,,,
+2.000575,T39,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh có miễn phí không?","Level 1-4: Phí/lệ phí, dùng full tên thủ tục để tránh nhầm",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Về phí/lệ phí của thủ tục Đăng ký thay đổi nội dung đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",528,0.528,"Về phí/lệ phí của thủ tục Đăng ký thay đổi nội dung đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",528,,yes,,,,,
+2.000575,T40,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Làm thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh có tốn tiền không?","Level 1-4: Phí/lệ phí, dùng full tên thủ tục để tránh nhầm",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Về phí/lệ phí của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",575,0.575,"Về phí/lệ phí của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Dịch vụ bưu chính: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Trực tiếp: Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....
+- Miễn phí (- Mức lệ phí cụ thể do Hội đồng nhân dân tỉnh quyết định (căn cứ quy định tại Thông tư số 85/2019/TT-BTC). - Người nộp hồ sơ đăng ký hộ kinh doanh nộp lệ phí đăng ký hộ kinh doanh tại thời điểm nộp hồ sơ đăng ký hộ kinh doanh....",575,,yes,,,,,
+2.000575,T41,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Tôi nghe nói lệ phí thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh là 5 triệu đồng, có đúng không?","Level 1-4: Phí/lệ phí, dùng full tên thủ tục để tránh nhầm",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Chào anh/chị, về lệ phí của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh thì hiện tại là miễn phí ạ. Không có mức 5 triệu đồng như anh/chị nghe nói đâu ạ.",3541,3.541,"Chào anh/chị, về lệ phí của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh thì hiện tại là miễn phí ạ. Không có mức 5 triệu đồng như anh/chị nghe nói đâu ạ.",3541,,yes,,,,,
+2.000575,T42,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh thực hiện theo những hình thức nào?","Level 1-3: Cách thức thực hiện, pipeline từng trả ổn ở nhóm này",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",584,0.584,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",584,,yes,,,,,
+2.000575,T43,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Tôi có thể làm thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh trực tuyến không?","Level 1-3: Cách thức thực hiện, pipeline từng trả ổn ở nhóm này",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",578,0.578,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",578,,yes,,,,,
+2.000575,T44,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh có hỗ trợ nộp qua dịch vụ bưu chính không?","Level 1-3: Cách thức thực hiện, pipeline từng trả ổn ở nhóm này",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",563,0.563,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",563,,yes,,,,,
+2.000575,T45,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Cách thức thực hiện của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh gồm trực tuyến, bưu chính và trực tiếp đúng không?","Level 1-3: Cách thức thực hiện, pipeline từng trả ổn ở nhóm này",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Dạ đúng rồi ạ. Thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh có thể thực hiện theo các hình thức: trực tuyến, qua dịch vụ bưu chính hoặc nộp trực tiếp tại cơ quan.",3298,3.298,"Dạ đúng rồi ạ. Thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh có thể thực hiện theo các hình thức: trực tuyến, qua dịch vụ bưu chính hoặc nộp trực tiếp tại cơ quan.",3298,,yes,,,,,
+2.000575,T46,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh","Tôi đang hỏi về thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh.",Vậy tôi có thể lên Cổng dịch vụ công để làm thủ tục này không?,"Level 1-3: Cách thức thực hiện, pipeline từng trả ổn ở nhóm này",,user,RUN_FORCED,no_resume,,test_proc_2.000575,1,200,5619,5619,200,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",3965,3.965,"Cách thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến
+- Dịch vụ bưu chính
+- Trực tiếp",3965,,yes,,,,,
+2.000575,T47,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Thời hạn giải quyết thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh là bao lâu?","Level 1-4: Thời hạn, có từ khóa mấy ngày/30 ngày",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Thời hạn giải quyết thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: 1
+- Dịch vụ bưu chính: 1
+- Trực tiếp: 1",602,0.602,"Thời hạn giải quyết thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: 1
+- Dịch vụ bưu chính: 1
+- Trực tiếp: 1",602,,yes,,,,,
+2.000575,T48,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Làm thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh mất mấy ngày làm việc?","Level 1-4: Thời hạn, có từ khóa mấy ngày/30 ngày",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Thời hạn giải quyết thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: 1
+- Dịch vụ bưu chính: 1
+- Trực tiếp: 1",576,0.576,"Thời hạn giải quyết thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: 1
+- Dịch vụ bưu chính: 1
+- Trực tiếp: 1",576,,yes,,,,,
+2.000575,T49,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh bị mất phải chờ 30 ngày đúng không?,"Level 1-4: Thời hạn, có từ khóa mấy ngày/30 ngày",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Dạ không phải 30 ngày đâu ạ. Đối với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, thời hạn giải quyết là 1 ngày làm việc cho cả hình thức trực tuyến, dịch vụ bưu chính hay nộp trực tiếp ạ.",3843,3.843,"Dạ không phải 30 ngày đâu ạ. Đối với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, thời hạn giải quyết là 1 ngày làm việc cho cả hình thức trực tuyến, dịch vụ bưu chính hay nộp trực tiếp ạ.",3843,,yes,,,,,
+2.000575,T50,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh","Tôi đang hỏi về thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh.",Vậy thời gian làm lại giấy chứng nhận hộ kinh doanh là bao lâu?,"Level 1-4: Thời hạn, có từ khóa mấy ngày/30 ngày",,user,RUN_FORCED,no_resume,,test_proc_2.000575,1,SKIP_DUP_CONTEXT,0,0,200,"Thời hạn giải quyết thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: 1
+- Dịch vụ bưu chính: 1
+- Trực tiếp: 1",3948,3.948,"Thời hạn giải quyết thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Trực tuyến: 1
+- Dịch vụ bưu chính: 1
+- Trực tiếp: 1",3948,,yes,,,,,
+2.000575,T51,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Hồ sơ của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh gồm những giấy tờ gì?",Level 1-4: Hồ sơ trực diện và một câu trường hợp chủ hộ chết,,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",559,0.559,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",559,,yes,,,,,
+2.000575,T52,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Thành phần hồ sơ khi làm thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh cần chuẩn bị gì?",Level 1-4: Hồ sơ trực diện và một câu trường hợp chủ hộ chết,,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",601,0.601,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",601,,yes,,,,,
+2.000575,T53,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Tôi bị mất Giấy chứng nhận đăng ký hộ kinh doanh, hồ sơ cấp lại cần giấy tờ nào?",Level 1-4: Hồ sơ trực diện và một câu trường hợp chủ hộ chết,,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",657,0.657,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",657,,yes,,,,,
+2.000575,T54,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Khi làm thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, có cần Giấy đề nghị đăng ký hộ kinh doanh không?",Level 1-4: Hồ sơ trực diện và một câu trường hợp chủ hộ chết,,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Dạ, với thủ tục này, trong hồ sơ không có giấy tờ tên chính xác là ""Giấy đề nghị đăng ký hộ kinh doanh"" ạ.
+
+Tùy vào trường hợp cụ thể, mình có thể cần chuẩn bị:
+- Giấy đề nghị đăng ký thay đổi nội dung đăng ký hộ kinh doanh.
+- Hoặc Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh.",13088,13.088,"Dạ, với thủ tục này, trong hồ sơ không có giấy tờ tên chính xác là ""Giấy đề nghị đăng ký hộ kinh doanh"" ạ.
+
+Tùy vào trường hợp cụ thể, mình có thể cần chuẩn bị:
+- Giấy đề nghị đăng ký thay đổi nội dung đăng ký hộ kinh doanh.
+- Hoặc Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh.",13088,,yes,,,,,
+2.000575,T55,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh có cần nộp bản gốc Giấy chứng nhận đăng ký hộ kinh doanh không?",Level 1-4: Hồ sơ trực diện và một câu trường hợp chủ hộ chết,,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",594,0.594,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",594,,yes,,,,,
+2.000575,T56,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh","Tôi đang hỏi về thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh.","Bố tôi là chủ hộ kinh doanh mới qua đời, hồ sơ thay đổi chủ hộ cần giấy tờ gì?",Level 1-4: Hồ sơ trực diện và một câu trường hợp chủ hộ chết,,user,RUN_FORCED,no_resume,,test_proc_2.000575,1,SKIP_DUP_CONTEXT,0,0,200,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",4964,4.964,"Với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, bạn chuẩn bị các giấy tờ chính sau:
+
+1. (ii) Giấy đề nghị đăng ký tạm ngừng kinh doanh/tiếp tục kinh doanh trước thời hạn đã đăng ký của hộ kinh doanh
+Số lượng: 1 bản chính
+
+Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.",4964,,yes,,,,,
+2.000575,T57,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Cơ quan thực hiện thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh là cơ quan nào?","Level 1-2: Field rõ, có full tên thủ tục",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Dạ, với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, mình sẽ nộp hồ sơ tại Cơ quan đăng ký kinh doanh cấp xã nơi hộ kinh doanh đăng ký trụ sở.
+
+Hoặc mình cũng có thể nộp tại bất kỳ Cơ quan đăng ký kinh doanh cấp xã nào trong cùng tỉnh, thành phố trực thuộc trung ương nơi hộ kinh doanh đặt trụ sở ạ.",4865,4.865,"Dạ, với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, mình sẽ nộp hồ sơ tại Cơ quan đăng ký kinh doanh cấp xã nơi hộ kinh doanh đăng ký trụ sở.
+
+Hoặc mình cũng có thể nộp tại bất kỳ Cơ quan đăng ký kinh doanh cấp xã nào trong cùng tỉnh, thành phố trực thuộc trung ương nơi hộ kinh doanh đặt trụ sở ạ.",4865,,yes,,,,,
+2.000575,T58,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Tôi phải nộp thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh ở đâu?","Level 1-2: Field rõ, có full tên thủ tục",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Dạ, với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, mình sẽ nộp hồ sơ tại Cơ quan đăng ký kinh doanh cấp xã nơi hộ kinh doanh đăng ký trụ sở.
+
+Hoặc mình cũng có thể nộp tại bất kỳ Cơ quan đăng ký kinh doanh cấp xã nào trong cùng tỉnh, thành phố trực thuộc trung ương nơi hộ kinh doanh đặt trụ sở ạ.",2715,2.715,"Dạ, với thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, mình sẽ nộp hồ sơ tại Cơ quan đăng ký kinh doanh cấp xã nơi hộ kinh doanh đăng ký trụ sở.
+
+Hoặc mình cũng có thể nộp tại bất kỳ Cơ quan đăng ký kinh doanh cấp xã nào trong cùng tỉnh, thành phố trực thuộc trung ương nơi hộ kinh doanh đặt trụ sở ạ.",2715,,yes,,,,,
+2.000575,T59,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Kết quả thực hiện của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh là gì?","Level 1-2: Field rõ, có full tên thủ tục",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Kết quả nhận được của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Thông báo bằng văn bản nội dung cần sửa đổi, bổ sung của Cơ quan đăng ký kinh doanh cấp xã, Giấy chứng nhận đăng ký hộ kinh doanh được cấp lại cho hộ kinh doanh., Giấy chứng nhận đăng ký hộ kinh doanh, Cơ quan đăng ký kinh doanh cấp xã cập nhật thông tin thay đổi của hộ kinh doanh trong Cơ sở dữ liệu về đăng ký hộ kinh...",582,0.582,"Kết quả nhận được của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh:
+
+- Thông báo bằng văn bản nội dung cần sửa đổi, bổ sung của Cơ quan đăng ký kinh doanh cấp xã, Giấy chứng nhận đăng ký hộ kinh doanh được cấp lại cho hộ kinh doanh., Giấy chứng nhận đăng ký hộ kinh doanh, Cơ quan đăng ký kinh doanh cấp xã cập nhật thông tin thay đổi của hộ kinh doanh trong Cơ sở dữ liệu về đăng ký hộ kinh...",582,,yes,,,,,
+2.000575,T60,2.000575,"Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh",,"Căn cứ pháp lý của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh có văn bản nào?","Level 1-2: Field rõ, có full tên thủ tục",,user,RUN_FORCED,no_resume,,test_proc_2.000575,0,,,,200,"Dạ, về căn cứ pháp lý của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, mình có thể tham khảo các văn bản sau ạ:
+- Thông tư số 85/2019/TT-BTC Hướng dẫn về phí và lệ phí thuộc thẩm quyền quyết định của Hội đồng nhân dân tỉnh, thành phố trực thuộc Trung ương.
+- Thông tư số 68/2025/TT-BTC của Bộ Tài chính: Ban hành biểu mẫu sử dụng trong đăng ký doanh nghiệp, đăng ký hộ kinh doanh.
+- Nghị định số 168/2025/NĐ-CP ngày 30 tháng 6 năm 2025 của Chính phủ về đăng ký doanh nghiệp.
+- Luật Doanh nghiệp số 59/2020/QH14.
+- Luật sửa đổi, bổ sung một số điều của Luật Doanh nghiệp 2020 số 76/2025/QH15.",4890,4.89,"Dạ, về căn cứ pháp lý của thủ tục Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh, Cấp đổi sang Giấy chứng nhận đăng ký hộ kinh doanh, mình có thể tham khảo các văn bản sau ạ:
+- Thông tư số 85/2019/TT-BTC Hướng dẫn về phí và lệ phí thuộc thẩm quyền quyết định của Hội đồng nhân dân tỉnh, thành phố trực thuộc Trung ương.
+- Thông tư số 68/2025/TT-BTC của Bộ Tài chính: Ban hành biểu mẫu sử dụng trong đăng ký doanh nghiệp, đăng ký hộ kinh doanh.
+- Nghị định số 168/2025/NĐ-CP ngày 30 tháng 6 năm 2025 của Chính phủ về đăng ký doanh nghiệp.
+- Luật Doanh nghiệp số 59/2020/QH14.
+- Luật sửa đổi, bổ sung một số điều của Luật Doanh nghiệp 2020 số 76/2025/QH15.",4890,,yes,,,,,
+TRUNG_BINH,TRUNG_BINH,,,,Dòng tổng kết thời gian chạy test,,,SUMMARY,,,,,,,,,OK=60/60; ERROR=0; SKIP=0; RERUN_SLOW=0,Thời gian trung bình tính trên các case HTTP 200 được ghi trong file output.,2170.88,2.171,SUMMARY,2170.88,,,,,,,2170.88

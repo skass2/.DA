@@ -7,22 +7,118 @@ interface Props {
   onSuggestedQuestionClick?: (question: string) => void;
 }
 
+const SUGGESTION_LABEL_MAX_CHARS = 36;
+
 function uniqueStrings(values?: string[]) {
   if (!values) return [];
   return Array.from(new Set(values.map((item) => item.trim()).filter(Boolean)));
 }
 
-function buildSourcesTooltip(sources: ChatSource[]) {
-  if (!sources.length) return "";
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
-  return sources
-    .slice(0, 5)
-    .map((source, index) => {
-      const field = source.field || source.section_type || "Thông tin thủ tục";
-      const proc = source.procedure_name ? ` - ${source.procedure_name}` : "";
-      return `${index + 1}. ${field}${proc}`;
-    })
-    .join("\n");
+function truncateLabel(value: string, maxChars = SUGGESTION_LABEL_MAX_CHARS) {
+  const text = value.replace(/\s+/g, " ").trim();
+  if (text.length <= maxChars) return text;
+
+  const cut = text.slice(0, maxChars + 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  const safeCut = lastSpace > 18 ? cut.slice(0, lastSpace) : text.slice(0, maxChars);
+  return `${safeCut.trim()}...`;
+}
+
+function removeProcedureNameFromSuggestion(question: string, procedureName?: string, displayName?: string) {
+  let label = question.replace(/\s+/g, " ").trim();
+
+  const names = [procedureName, displayName]
+    .map((item) => item?.trim())
+    .filter(Boolean) as string[];
+
+  for (const name of names) {
+    const escapedName = escapeRegExp(name);
+    label = label.replace(new RegExp(`\\bthủ tục\\s+${escapedName}`, "gi"), "thủ tục");
+    label = label.replace(new RegExp(escapedName, "gi"), "");
+  }
+
+  return label
+    .replace(/\bthủ tục\s+thủ tục\b/gi, "thủ tục")
+    .replace(/\bcho thủ tục\s+gồm\b/gi, "gồm")
+    .replace(/\bthủ tục\s+có\b/gi, "có")
+    .replace(/\bthủ tục\s+là\b/gi, "là")
+    .replace(/\bthủ tục\s+ở\b/gi, "ở")
+    .replace(/\s+/g, " ")
+    .replace(/\s+\?/g, "?")
+    .trim();
+}
+
+function buildSuggestionLabel(question: string, procedureName?: string, displayName?: string) {
+  const raw = question.replace(/\s+/g, " ").trim();
+  const lower = raw.toLowerCase();
+
+  if ((lower.includes("hồ sơ") || lower.includes("giấy tờ")) && (lower.includes("gồm") || lower.includes("chuẩn bị"))) {
+    return "Hồ sơ cần chuẩn bị gồm gì?";
+  }
+
+  if (lower.includes("phí") || lower.includes("lệ phí") || lower.includes("mất tiền")) {
+    return "Có mất phí/lệ phí không?";
+  }
+
+  if (lower.includes("thời hạn") || lower.includes("bao lâu") || lower.includes("mấy ngày")) {
+    return "Thời hạn giải quyết là bao lâu?";
+  }
+
+  if (lower.includes("nộp") || lower.includes("ở đâu") || lower.includes("cơ quan")) {
+    return "Nộp hồ sơ ở đâu?";
+  }
+
+  if (lower.includes("trực tuyến") || lower.includes("online")) {
+    return "Có nộp trực tuyến được không?";
+  }
+
+  if (lower.includes("kết quả") || lower.includes("nhận được")) {
+    return "Kết quả nhận được là gì?";
+  }
+
+  if (lower.includes("điều kiện")) {
+    return "Điều kiện cần có là gì?";
+  }
+
+  if (lower.includes("trình tự") || lower.includes("các bước")) {
+    return "Trình tự thực hiện ra sao?";
+  }
+
+  if (lower.includes("đối tượng") || lower.includes("ai có thể")) {
+    return "Ai có thể thực hiện?";
+  }
+
+  if (lower.includes("căn cứ pháp lý") || lower.includes("văn bản pháp luật")) {
+    return "Căn cứ pháp lý là gì?";
+  }
+
+  const withoutProcedureName = removeProcedureNameFromSuggestion(raw, procedureName, displayName);
+  return truncateLabel(withoutProcedureName || raw);
+}
+
+function buildSourcesTooltip(sources: ChatSource[], selectedProcedureName?: string) {
+  const procedureNames = new Set<string>();
+
+  sources.forEach((source) => {
+    const name = source.procedure_name?.trim();
+    if (name) procedureNames.add(name);
+  });
+
+  if (selectedProcedureName?.trim()) {
+    procedureNames.add(selectedProcedureName.trim());
+  }
+
+  const names = Array.from(procedureNames);
+  if (!names.length) return "Nguồn dữ liệu của thủ tục đang tư vấn";
+
+  return [
+    "Thủ tục đang tham khảo:",
+    ...names.slice(0, 5).map((name, index) => `${index + 1}. ${name}`),
+  ].join("\n");
 }
 
 function InfoIcon() {
@@ -47,9 +143,15 @@ export default function Message({ message, showSuggestions = false, onSuggestedQ
   const [visible, setVisible] = useState(false);
   const suggestions = uniqueStrings(message.suggestedQuestions).slice(0, 3);
   const sources = message.sources || [];
-  const shouldShowMetadata = !isUser && (message.showMetadata ?? true) && (!!message.selectedProcedure?.name || sources.length > 0);
+  const shouldShowMetadata =
+    !isUser &&
+    (message.showMetadata ?? true) &&
+    (!!message.selectedProcedure?.name || sources.length > 0);
 
-  const sourceTooltip = useMemo(() => buildSourcesTooltip(sources), [sources]);
+  const sourceTooltip = useMemo(
+    () => buildSourcesTooltip(sources, message.selectedProcedure?.name),
+    [sources, message.selectedProcedure?.name]
+  );
   const procedureTooltip = message.selectedProcedure?.name
     ? `Đang tư vấn thủ tục: ${message.selectedProcedure.name}`
     : "";
@@ -88,7 +190,7 @@ export default function Message({ message, showSuggestions = false, onSuggestedQ
                 <span
                   title={sourceTooltip}
                   aria-label={sourceTooltip || "Nguồn dữ liệu"}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 cursor-help"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 cursor-help"
                 >
                   <InfoIcon />
                   <span className="sr-only">Nguồn dữ liệu</span>
@@ -104,17 +206,26 @@ export default function Message({ message, showSuggestions = false, onSuggestedQ
 
         {!isUser && showSuggestions && suggestions.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2 max-w-full">
-            {suggestions.map((question) => (
-              <button
-                key={question}
-                type="button"
-                onClick={() => onSuggestedQuestionClick?.(question)}
-                className="text-xs sm:text-sm text-left px-3 py-2 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-200 border border-blue-100 dark:border-blue-800/60 transition-colors shadow-sm"
-                title={question}
-              >
-                {question}
-              </button>
-            ))}
+            {suggestions.map((question) => {
+              const label = buildSuggestionLabel(
+                question,
+                message.selectedProcedure?.name,
+                message.selectedProcedure?.display_name
+              );
+
+              return (
+                <button
+                  key={question}
+                  type="button"
+                  onClick={() => onSuggestedQuestionClick?.(question)}
+                  className="max-w-[220px] truncate whitespace-nowrap overflow-hidden text-xs sm:text-sm text-left px-3 py-2 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-200 border border-blue-100 dark:border-blue-800/60 transition-colors shadow-sm"
+                  title={question}
+                  aria-label={question}
+                >
+                  {truncateLabel(label)}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

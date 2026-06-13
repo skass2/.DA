@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Depends
 from routers.auth import get_admin_user
-from rag.loader import load_data
+from rag.loader import load_data, get_data_health_report
 from rag.chunker import create_chunks
 from rag.vectorstore import build_vectorstore
 from rag.memory import get_db, clear_history
@@ -12,6 +12,7 @@ import os
 import shutil
 import time
 from pydantic import BaseModel
+from typing import Optional
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -19,7 +20,16 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 @router.post("/reload-vectordb")
 def reload_vectordb(request: Request, current_admin: dict = Depends(get_admin_user)):
     try:
+        health = get_data_health_report()
         data = load_data()
+
+        if not data:
+            return {
+                "status": "error",
+                "message": "Không có thủ tục hợp lệ để đồng bộ. Hãy kiểm tra file dữ liệu.",
+                "data_health": health,
+            }
+
         chunks = create_chunks(data)
         
         # Quan trọng: Giải phóng DB hiện tại khỏi RAM để hệ điều hành nhả file lock
@@ -44,7 +54,16 @@ def reload_vectordb(request: Request, current_admin: dict = Depends(get_admin_us
                         except Exception as e:
                             print(f"Lỗi xóa backup {item}: {e}")
                             
-        return {"status": "success", "message": "Cơ sở dữ liệu Vector đã được cập nhật thành công. Đã tự động tạo bản sao lưu (Backup) cho dữ liệu cũ!"}
+        return {
+            "status": "success",
+            "message": (
+                "Cơ sở dữ liệu Vector đã được cập nhật thành công. "
+                f"Đã dùng {health.get('valid', len(data))} thủ tục hợp lệ, "
+                f"bỏ qua {health.get('skipped', 0)} bản ghi lỗi/rỗng."
+            ),
+            "data_health": health,
+            "chunks": len(chunks),
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -93,6 +112,12 @@ def get_system_stats(current_admin: dict = Depends(get_admin_user)):
         "status": "Healthy",
         "chart_data": chart_data
     }
+
+
+# Kiểm tra sức khỏe dữ liệu đầu vào, không build vector DB
+@router.get("/data-health")
+def get_data_health(current_admin: dict = Depends(get_admin_user)):
+    return get_data_health_report()
 
 # 2. Giám sát lịch sử: Lấy danh sách Người dùng
 @router.get("/users")
@@ -218,21 +243,30 @@ def remove_admin_email(email: str, current_admin: dict = Depends(get_admin_user)
         doc_ref.set({"emails": emails}, merge=True)
     return {"status": "success", "message": f"Đã thu hồi quyền Admin của {email}"}
 
-# 3. Quản lý tài liệu pháp luật (Lấy danh sách từ procedures.json)
+# 3. Quản lý tài liệu pháp luật (tự lọc bản ghi lỗi qua loader.py)
 @router.get("/documents")
 def get_documents_list(current_admin: dict = Depends(get_admin_user)):
     try:
         data = load_data()
         docs = []
         for item in data:
+            content = item.get("content", {}) if isinstance(item.get("content", {}), dict) else {}
+            source_url = item.get("detail_url") or item.get("link") or content.get("source_url", "")
             docs.append({
                 "id": item.get("id", ""),
-                "name": item.get("name", "Không xác định"),
-                "link": item.get("link", "#"),
-                "linh_vuc": item.get("content", {}).get("Lĩnh vực", "Chưa phân loại"),
-                "content": item.get("content", {})
+                "old_internal_id": item.get("old_internal_id", ""),
+                "search_code": item.get("search_code", content.get("Mã thủ tục", "")),
+                "name": item.get("name") or content.get("Tên thủ tục", "Không xác định"),
+                "link": source_url,
+                "detail_url": source_url,
+                "source_url": source_url,
+                "linh_vuc": content.get("Lĩnh vực", "Chưa phân loại"),
+                "cap_thuc_hien": content.get("Cấp thực hiện", ""),
+                "co_quan": content.get("Cơ quan thực hiện", "") or content.get("Cơ quan có thẩm quyền", ""),
+                "file_mau_count": len(content.get("File mẫu", []) if isinstance(content.get("File mẫu", []), list) else []),
+                "content": content,
             })
-        return {"documents": docs}
+        return {"documents": docs, "data_health": get_data_health_report()}
     except Exception as e:
         return {"documents": [], "error": str(e)}
 
@@ -240,12 +274,15 @@ def get_documents_list(current_admin: dict = Depends(get_admin_user)):
 class ProcedureModel(BaseModel):
     id: str
     name: str
-    link: str
+    link: str = ""
+    detail_url: Optional[str] = ""
     content: dict
 
 # Khắc phục lỗi Sửa/Xóa bằng đường dẫn tuyệt đối
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PROCEDURES_FILE = os.path.join(BASE_DIR, "data", "procedures.json")
+PROCEDURES_DVC_FILE = os.path.join(BASE_DIR, "data", "procedures_dvc_new.json")
+PROCEDURES_LEGACY_FILE = os.path.join(BASE_DIR, "data", "procedures.json")
+PROCEDURES_FILE = PROCEDURES_DVC_FILE if os.path.exists(PROCEDURES_DVC_FILE) else PROCEDURES_LEGACY_FILE
 
 class NLConvertRequest(BaseModel):
     text: str
@@ -295,7 +332,7 @@ def _rebuild_qdrant_from_current_json(request: Request) -> int:
     Dùng sau khi admin thêm/sửa/xóa tài liệu để tránh tình trạng JSON đã đổi
     nhưng vector DB vẫn dùng dữ liệu cũ.
     """
-    data = _load_json()
+    data = load_data(PROCEDURES_FILE)
     chunks = create_chunks(data)
 
     # Ngắt tham chiếu DB cũ trong RAM trước khi build lại collection.
@@ -322,11 +359,17 @@ def create_document(
                     "message": "Mã tài liệu/thủ tục đã tồn tại"
                 }
 
+        source_url = doc.detail_url or doc.link or doc.content.get("source_url", "")
+        content = dict(doc.content or {})
+        if source_url and not content.get("source_url"):
+            content["source_url"] = source_url
+
         new_doc = {
             "id": doc.id,
             "name": doc.name,
-            "link": doc.link,
-            "content": doc.content
+            "link": source_url,
+            "detail_url": source_url,
+            "content": content
         }
         data.append(new_doc)
         _save_json(data)
@@ -353,11 +396,17 @@ def update_document(
         data = _load_json()
         for i, item in enumerate(data):
             if str(item.get("id")) == str(doc_id):
+                source_url = doc.detail_url or doc.link or doc.content.get("source_url", "")
+                content = dict(doc.content or {})
+                if source_url and not content.get("source_url"):
+                    content["source_url"] = source_url
+
                 data[i] = {
                     "id": doc.id,
                     "name": doc.name,
-                    "link": doc.link,
-                    "content": doc.content
+                    "link": source_url,
+                    "detail_url": source_url,
+                    "content": content
                 }
                 _save_json(data)
 

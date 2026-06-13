@@ -25,6 +25,20 @@ function normalizeSuggestions(data: ChatApiResponse | any) {
   return Array.from(new Set(raw.map((item) => String(item).trim()).filter(Boolean))).slice(0, 3);
 }
 
+function normalizeSelectedProcedure(data: ChatApiResponse | any) {
+  return data?.selected_procedure || data?.answer?.selected_procedure || null;
+}
+
+function normalizeSources(data: ChatApiResponse | any) {
+  const raw = data?.sources || data?.answer?.sources || [];
+  return Array.isArray(raw) ? raw : [];
+}
+
+function normalizeShowMetadata(data: ChatApiResponse | any) {
+  const value = data?.show_metadata ?? data?.showMetadata ?? data?.answer?.show_metadata ?? data?.answer?.showMetadata;
+  return typeof value === "boolean" ? value : undefined;
+}
+
 export default function ChatBox({ isAdmin }: ChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -117,7 +131,7 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
       const res = await fetch(
-        `${apiUrl}/user/chat?q=${encodeURIComponent(value)}&session_id=${encodeURIComponent(sessionId)}`,
+        `${apiUrl}/user/chat?q=${encodeURIComponent(value)}&session_id=${sessionId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -127,11 +141,7 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
       );
 
       if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-      const data: ChatApiResponse = await res.json();
-
-      const nestedAnswer = typeof (data as any).answer === "object" && (data as any).answer !== null
-        ? (data as any).answer
-        : {};
+      const data = await res.json();
 
       const botMsg: ChatMessage = {
         id: `bot-${Date.now()}`,
@@ -139,15 +149,9 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
         content: getAnswerText(data),
         createdAt: Date.now(),
         suggestedQuestions: normalizeSuggestions(data),
-        selectedProcedure: data.selected_procedure || nestedAnswer.selected_procedure || null,
-        sources: data.sources || nestedAnswer.sources || [],
-        showMetadata: Boolean(
-          data.show_metadata ??
-          data.showMetadata ??
-          nestedAnswer.show_metadata ??
-          nestedAnswer.showMetadata ??
-          ((data.selected_procedure || nestedAnswer.selected_procedure || (data.sources || nestedAnswer.sources || []).length > 0) ? true : false)
-        ),
+        selectedProcedure: normalizeSelectedProcedure(data),
+        sources: normalizeSources(data),
+        showMetadata: normalizeShowMetadata(data),
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -156,9 +160,9 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
       setMessages((prev) => [
         ...prev,
         {
-          id: `bot-server-error-${Date.now()}`,
+          id: `bot-network-error-${Date.now()}`,
           role: "bot",
-          content: "Lỗi kết nối server. Vui lòng thử lại sau.",
+          content: "Lỗi kết nối server",
           createdAt: Date.now(),
         },
       ]);
@@ -166,8 +170,6 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
       setLoading(false);
     }
   };
-
-  const lastBotMessageId = [...messages].reverse().find((m) => m.role === "bot")?.id;
 
   return (
     <div className="flex h-full w-full overflow-hidden transition-colors duration-500">
@@ -183,9 +185,8 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
             setLoading(true);
             try {
               const currentToken = await firebaseUser.getIdToken();
-              setToken(currentToken);
               const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-              const res = await fetch(`${apiUrl}/user/chat/history?session_id=${encodeURIComponent(id)}`, {
+              const res = await fetch(`${apiUrl}/user/chat/history?session_id=${id}`, {
                 headers: {
                   Authorization: `Bearer ${currentToken}`,
                   "ngrok-skip-browser-warning": "true",
@@ -194,14 +195,7 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
               if (res.ok) {
                 const data = await res.json();
                 if (data.messages && data.messages.length > 0) {
-                  setMessages(
-                    data.messages.map((msg: any) => ({
-                      id: String(msg.id || `${msg.role}-${Date.now()}-${Math.random()}`),
-                      role: msg.role === "user" ? "user" : "bot",
-                      content: String(msg.content || ""),
-                      createdAt: Number(msg.createdAt || Date.now()),
-                    }))
-                  );
+                  setMessages(data.messages);
                 }
               }
             } catch (error) {
@@ -218,7 +212,7 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
-        ></div>
+        />
       )}
 
       {/* Main Chat Area */}
@@ -232,7 +226,9 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
                 className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300"
                 title="Mở thanh bên"
               >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               </button>
             )}
             <button
@@ -240,11 +236,15 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
               className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors duration-300 flex items-center gap-1"
               title="Về Trang chủ"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
               <span className="hidden lg:inline text-sm font-medium">Trang chủ</span>
             </button>
             <div className="hidden sm:block">
-              <h3 className="text-base sm:text-xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-500 whitespace-nowrap">Chatbot Thủ Tục</h3>
+              <h3 className="text-base sm:text-xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-500 whitespace-nowrap">
+                Chatbot Thủ Tục
+              </h3>
               <p className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-medium transition-colors duration-500 hidden md:block">
                 Sẵn sàng hỗ trợ bạn
               </p>
@@ -268,7 +268,10 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {isAdmin && (
-                <button onClick={() => navigate("/admin")} className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm whitespace-nowrap">
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-all duration-500 shadow-md text-xs sm:text-sm whitespace-nowrap"
+                >
                   Quản trị
                 </button>
               )}
@@ -287,11 +290,11 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
         {/* MESSAGES */}
         <div className="relative z-10 flex-1 overflow-y-auto p-6 transition-colors duration-500">
           {messages.length > 0 ? (
-            messages.map((m) => (
+            messages.map((m, index) => (
               <Message
                 key={m.id}
                 message={m}
-                showSuggestions={m.id === lastBotMessageId && !loading}
+                showSuggestions={m.role === "bot" && index === messages.length - 1}
                 onSuggestedQuestionClick={sendMessage}
               />
             ))
@@ -307,12 +310,13 @@ export default function ChatBox({ isAdmin }: ChatBoxProps) {
               </div>
             </div>
           )}
+
           {loading && (
             <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mt-2 transition-colors duration-500">
               <span className="flex space-x-1">
-                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></span>
-                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce delay-150"></span>
-                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce delay-300"></span>
+                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" />
+                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce delay-150" />
+                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce delay-300" />
               </span>
               <span>Bot đang gõ...</span>
             </div>

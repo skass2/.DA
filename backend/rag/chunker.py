@@ -268,7 +268,7 @@ def build_procedure_markdown(item: Dict) -> str:
             hinh_thuc = clean_text(method.get("Hình thức", ""))
             thoi_han = clean_text(method.get("Thời hạn", ""))
             mo_ta = clean_text(method.get("Mô tả", ""))
-            fee = clean_text(method.get("Mức phí/Lệ phí", ""))
+            fee = clean_text(method.get("Mức phí/Lệ phí") or method.get("Phí, lệ phí") or method.get("Phí/Lệ phí") or "")
 
             key = normalize_text("|".join([hinh_thuc, thoi_han, mo_ta, fee]))
             if key in seen:
@@ -470,7 +470,7 @@ def create_method_chunks(item: Dict, docs: List[Document]):
         hinh_thuc = clean_text(method.get("Hình thức", ""))
         thoi_han = clean_text(method.get("Thời hạn", ""))
         mo_ta = clean_text(method.get("Mô tả", ""))
-        fee = clean_text(method.get("Mức phí/Lệ phí", ""))
+        fee = clean_text(method.get("Mức phí/Lệ phí") or method.get("Phí, lệ phí") or method.get("Phí/Lệ phí") or "")
 
         condition_parts = split_conditions(thoi_han) or [thoi_han]
         for c_idx, condition in enumerate(condition_parts, start=1):

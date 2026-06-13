@@ -1,8 +1,6 @@
-export type Role = "user" | "bot";
-
 export interface ProcedureRef {
   id?: string;
-  name: string;
+  name?: string;
   display_name?: string;
 }
 
@@ -16,9 +14,9 @@ export interface ChatSource {
 
 export interface ChatMessage {
   id: string;
-  role: Role;
+  role: "user" | "bot" | "assistant";
   content: string;
-  createdAt: number;
+  createdAt?: number;
   suggestedQuestions?: string[];
   selectedProcedure?: ProcedureRef | null;
   sources?: ChatSource[];
@@ -26,20 +24,19 @@ export interface ChatMessage {
 }
 
 export interface ChatApiResponse {
-  answer?: string | ChatApiResponse;
+  answer:
+    | string
+    | {
+        answer?: string;
+        suggested_questions?: string[];
+        selected_procedure?: ProcedureRef | null;
+        sources?: ChatSource[];
+        show_metadata?: boolean;
+        showMetadata?: boolean;
+      };
   suggested_questions?: string[];
-  suggestedQuestions?: string[];
   selected_procedure?: ProcedureRef | null;
-  selectedProcedure?: ProcedureRef | null;
   sources?: ChatSource[];
   show_metadata?: boolean;
   showMetadata?: boolean;
-  procedure_candidates?: ProcedureRef[];
-}
-
-export type UserRole = "guest" | "user" | "admin";
-
-export interface User {
-  name: string;
-  role: UserRole;
 }

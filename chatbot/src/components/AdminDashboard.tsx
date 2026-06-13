@@ -6,6 +6,15 @@ import UserMenu from "./UserMenu";
 
 type ContentMode = "markdown" | "json";
 
+type DataHealth = {
+  total?: number;
+  valid?: number;
+  skipped?: number;
+  error_records?: number;
+  empty_name?: number;
+  empty_content?: number;
+};
+
 const EMPTY_SECTION_TEXT = "Không có thông tin";
 const ARRAY_OBJECT_SECTIONS = new Set([
   "Cách thức thực hiện",
@@ -247,6 +256,23 @@ const markdownToJson = (markdown: string) => {
   }, {});
 };
 
+const getProcedureSourceUrl = (doc: any) => {
+  return String(
+    doc?.detail_url ||
+    doc?.source_url ||
+    doc?.link ||
+    doc?.content?.source_url ||
+    ""
+  ).trim();
+};
+
+const getProcedureSourceLabel = (doc: any) => {
+  const url = getProcedureSourceUrl(doc);
+  if (!url) return "Chưa có nguồn";
+  if (url.includes("dichvucong.gov.vn")) return "Cổng DVC";
+  return "Nguồn";
+};
+
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -261,11 +287,13 @@ export default function AdminDashboard() {
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [backups, setBackups] = useState<any[]>([]);
   const [retentionDays, setRetentionDays] = useState<number>(3);
+  const [dataHealth, setDataHealth] = useState<DataHealth | null>(null);
+  const [syncInfo, setSyncInfo] = useState<string>("");
 
   // Thêm state cho Modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<any>(null);
-  const [formData, setFormData] = useState({ id: "", name: "", link: "", content: "{}" });
+  const [formData, setFormData] = useState({ id: "", name: "", link: "", detail_url: "", content: "{}" });
   const [contentMode, setContentMode] = useState<ContentMode>("markdown");
   const [mdContent, setMdContent] = useState("");
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
@@ -296,12 +324,20 @@ export default function AdminDashboard() {
         "ngrok-skip-browser-warning": "true"
       }
     });
+
+    const rawText = await res.text();
+    let payload: any = null;
+    try {
+      payload = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      payload = { message: rawText };
+    }
     
     if (!res.ok) {
       if (res.status === 403) alert("Bạn không có quyền truy cập trang quản trị!");
-      throw new Error(`HTTP Error: ${res.status}`);
+      throw new Error(payload?.detail || payload?.message || `HTTP Error: ${res.status}`);
     }
-    return res.json();
+    return payload;
   };
 
   // Tải thống kê
@@ -333,11 +369,24 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const data = await fetchAdminData("/admin/documents");
-      if (data) setDocuments(data.documents || []);
+      if (data) {
+        setDocuments((data.documents || []).filter((doc: any) => doc && doc.id && doc.name && !doc.error));
+        if (data.data_health) setDataHealth(data.data_health);
+      }
     } catch (e) {
       console.error(e);
     }
     setLoading(false);
+  };
+
+  // Kiểm tra sức khỏe dữ liệu thủ tục
+  const loadDataHealth = async () => {
+    try {
+      const data = await fetchAdminData("/admin/data-health");
+      if (data) setDataHealth(data);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   // Tải danh sách backup
@@ -411,10 +460,12 @@ export default function AdminDashboard() {
     if (doc) {
       const content = doc.content || {};
       setEditingDoc(doc);
+      const sourceUrl = getProcedureSourceUrl(doc);
       setFormData({
         id: String(doc.id),
         name: doc.name || "",
-        link: doc.link || "",
+        link: sourceUrl,
+        detail_url: sourceUrl,
         content: JSON.stringify(content, null, 2)
       });
       setMdContent(jsonToMarkdown(content));
@@ -429,6 +480,7 @@ export default function AdminDashboard() {
         id: `DOC_${Date.now()}`,
         name: "",
         link: "",
+        detail_url: "",
         content: JSON.stringify(defaultContent, null, 2)
       });
       setMdContent(jsonToMarkdown(defaultContent));
@@ -502,11 +554,16 @@ export default function AdminDashboard() {
         ? markdownToJson(mdContent)
         : JSON.parse(formData.content);
 
+      const sourceUrl = (formData.detail_url || formData.link || "").trim();
       const payload = {
         id: formData.id,
         name: formData.name,
-        link: formData.link,
-        content: parsedContent
+        link: sourceUrl,
+        detail_url: sourceUrl,
+        content: {
+          ...parsedContent,
+          source_url: parsedContent?.source_url || sourceUrl,
+        }
       };
 
       setLoading(true);
@@ -554,8 +611,21 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const data = await fetchAdminData("/admin/reload-vectordb", { method: "POST" });
-      if (data) alert(data.message);
+      if (data?.data_health) setDataHealth(data.data_health);
+
+      if (data?.status === "error") {
+        const message = data.message || "Đồng bộ thất bại.";
+        setSyncInfo(message);
+        alert(message);
+        return;
+      }
+
+      const message = data?.message || "Đồng bộ thành công.";
+      const chunkText = data?.chunks ? ` Số chunk mới: ${data.chunks}.` : "";
+      setSyncInfo(`${message}${chunkText}`);
+      alert(`${message}${chunkText}`);
       loadBackups();
+      loadDocuments();
     } catch (e) {
       console.error(e);
     }
@@ -621,7 +691,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (activeTab === "stats") loadStats();
     else if (activeTab === "history") loadUsers();
-    else if (activeTab === "documents") { loadDocuments(); loadBackups(); }
+    else if (activeTab === "documents") { loadDocuments(); loadBackups(); loadDataHealth(); }
     else if (activeTab === "admins") loadAdmins();
   }, [activeTab]);
 
@@ -824,10 +894,36 @@ export default function AdminDashboard() {
         {activeTab === "documents" && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Quản lý Tài liệu & Cơ sở dữ liệu</h2>
+
+            {dataHealth && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Tổng bản ghi</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{dataHealth.total || 0}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Hợp lệ</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{dataHealth.valid || 0}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Bỏ qua</p>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{dataHealth.skipped || 0}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Lỗi crawler</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{dataHealth.error_records || 0}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Rỗng nội dung</p>
+                  <p className="text-2xl font-bold text-gray-700 dark:text-gray-200">{dataHealth.empty_content || 0}</p>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
               <h3 className="text-lg font-semibold mb-2">Đồng bộ Vector Database</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
-                Tính năng này sẽ tiến hành đọc lại dữ liệu từ <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">data/procedures.json</code>, phân mảnh (chunking) và cập nhật embeddings mới vào Vector Database. Quá trình này có thể tốn vài phút.
+                Tính năng này sẽ đọc dữ liệu từ <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">data/procedures_dvc_new.json</code>, tự bỏ qua bản ghi lỗi/rỗng, tạo chunk sạch và cập nhật embeddings mới vào Vector Database. Quá trình này có thể tốn vài phút.
               </p>
             <div className="flex flex-wrap gap-4">
                 <button 
@@ -842,9 +938,14 @@ export default function AdminDashboard() {
                   disabled={loading}
                   className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  <span>➕</span> Thêm tài liệu mới
+                  Thêm tài liệu mới
                 </button>
               </div>
+              {syncInfo && (
+                <div className="mt-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/60 p-3 text-sm text-blue-700 dark:text-blue-200">
+                  {syncInfo}
+                </div>
+              )}
             </div>
 
             {/* QUẢN LÝ BACKUP */}
@@ -923,17 +1024,30 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {documents.filter(doc => doc.name?.toLowerCase().includes(docSearchTerm.toLowerCase()) || doc.id?.toLowerCase().includes(docSearchTerm.toLowerCase()) || doc.linh_vuc?.toLowerCase().includes(docSearchTerm.toLowerCase())).map((doc, idx) => (
+                    {documents.filter(doc => [doc.name, doc.id, doc.search_code, doc.linh_vuc, doc.cap_thuc_hien, doc.co_quan, doc.detail_url, doc.source_url, doc.link].some(value => String(value || '').toLowerCase().includes(docSearchTerm.toLowerCase()))).map((doc, idx) => (
                       <tr 
                         key={idx} 
                         onClick={() => setSelectedDocId(doc.id === selectedDocId ? null : doc.id)}
                         className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${selectedDocId === doc.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
                       >
-                        <td className="px-6 py-4 font-mono text-xs text-gray-500">{doc.id}</td>
+                        <td className="px-6 py-4 font-mono text-xs text-gray-500">{doc.id}<br /><span className="text-[10px] text-gray-400">{doc.search_code || ""}</span></td>
                         <td className="px-6 py-4 font-medium text-blue-600 dark:text-blue-400 max-w-[200px] sm:max-w-xs md:max-w-md truncate" title={doc.name}>{doc.name}</td>
-                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-40 truncate" title={doc.linh_vuc || undefined}>{doc.linh_vuc || "Chung"}</td>
+                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400 max-w-40 truncate" title={doc.linh_vuc || undefined}>{doc.linh_vuc || "Chung"}{doc.file_mau_count ? ` · ${doc.file_mau_count} file mẫu` : ""}</td>
                         <td className="px-6 py-4 text-center">
-                          <a href={doc.link} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-500" onClick={(e) => e.stopPropagation()}>🔗 Link</a>
+                          {getProcedureSourceUrl(doc) ? (
+                            <a
+                              href={getProcedureSourceUrl(doc)}
+                              target="_blank"
+                              rel="noreferrer"
+                              title={getProcedureSourceUrl(doc)}
+                              className="inline-flex items-center justify-center rounded-full border border-blue-100 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {getProcedureSourceLabel(doc)}
+                            </a>
+                          ) : (
+                            <span className="text-xs text-gray-400">Chưa có nguồn</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-center whitespace-nowrap min-w-[120px]">
                           {selectedDocId === doc.id && (
@@ -945,8 +1059,8 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     ))}
-                    {documents.filter(doc => doc.name?.toLowerCase().includes(docSearchTerm.toLowerCase()) || doc.id?.toLowerCase().includes(docSearchTerm.toLowerCase()) || doc.linh_vuc?.toLowerCase().includes(docSearchTerm.toLowerCase())).length === 0 && !loading && (
-                      <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">Không tìm thấy tài liệu nào</td></tr>
+                    {documents.filter(doc => [doc.name, doc.id, doc.search_code, doc.linh_vuc, doc.cap_thuc_hien, doc.co_quan, doc.detail_url, doc.source_url, doc.link].some(value => String(value || '').toLowerCase().includes(docSearchTerm.toLowerCase()))).length === 0 && !loading && (
+                      <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">Không tìm thấy tài liệu nào</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -1054,11 +1168,12 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Đường dẫn tham khảo (Link)</label>
+                <label className="block text-sm font-medium mb-1">Nguồn thủ tục trên Cổng DVC</label>
                 <input 
                   type="text" 
-                  value={formData.link} 
-                  onChange={e => setFormData({...formData, link: e.target.value})}
+                  value={formData.detail_url || formData.link} 
+                  onChange={e => setFormData({...formData, link: e.target.value, detail_url: e.target.value})}
+                  placeholder="https://dichvucong.gov.vn/thu-tuc-hanh-chinh/..."
                   className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                 />
               </div>

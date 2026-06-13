@@ -2,6 +2,7 @@ import time
 import json
 import re
 import os
+import random
 from collections import OrderedDict
 from sentence_transformers import CrossEncoder
 from qdrant_client.models import Filter, FieldCondition, MatchValue
@@ -39,6 +40,8 @@ FILTER_SEARCH_K = int(os.getenv("FILTER_SEARCH_K", "5"))
 PARENT_METHOD_K = int(os.getenv("PARENT_METHOD_K", "2"))
 EXACT_FIELD_K = int(os.getenv("EXACT_FIELD_K", "6"))
 DIRECT_ANSWER_MAX_CHUNKS = int(os.getenv("DIRECT_ANSWER_MAX_CHUNKS", "4"))
+MULTI_FIELD_MAX_GROUPS = int(os.getenv("MULTI_FIELD_MAX_GROUPS", "4"))
+EXACT_PROC_SCROLL_LIMIT = int(os.getenv("EXACT_PROC_SCROLL_LIMIT", "80"))
 STRICT_FIELD_CONTEXT = os.getenv("STRICT_FIELD_CONTEXT", "true").lower() == "true"
 
 
@@ -66,18 +69,78 @@ except Exception as e:
     print(f"[FILE LOAD ERROR]: {e}")
     ENTITIES_DATA, SYNONYMS_DATA = {}, {}
 
+
+def _clean_proc_id_value(value) -> str:
+    """Chuẩn hóa mã thủ tục ở mức kỹ thuật, không thay đổi dữ liệu gốc."""
+    return str(value or "").strip()
+
+
+def _short_procedure_id(value) -> str:
+    """
+    Lấy mã rút gọn từ mã thủ tục đầy đủ.
+    Ví dụ: 2.000575.000.00.00.H35 -> 2.000575.
+    """
+    proc_id = _clean_proc_id_value(value)
+    parts = proc_id.split(".")
+    if len(parts) >= 2:
+        return ".".join(parts[:2])
+    return proc_id
+
+
+def _procedure_id_aliases(value):
+    """Trả về các biến thể mã thủ tục để so khớp full ID và short ID."""
+    proc_id = _clean_proc_id_value(value)
+    if not proc_id:
+        return []
+
+    aliases = []
+    for candidate in [proc_id, _short_procedure_id(proc_id)]:
+        if candidate and candidate not in aliases:
+            aliases.append(candidate)
+    return aliases
+
+
 # Map tên thủ tục -> mã thủ tục để response/frontend có metadata rõ ràng.
+# Ưu tiên dùng loader chung để pipeline, admin, frontend cùng nhìn một nguồn dữ liệu.
 try:
-    with open("data/procedures.json", "r", encoding="utf-8") as f:
-        PROCEDURES_DATA = json.load(f)
-    PROCEDURE_ID_BY_NAME = {
-        item.get("name", ""): str(item.get("id", ""))
-        for item in PROCEDURES_DATA
-        if isinstance(item, dict)
-    }
+    try:
+        from rag.loader import load_data as _load_procedure_data
+        PROCEDURES_DATA = _load_procedure_data()
+        print(f"[PIPELINE DATA] Loaded procedures via rag.loader: {len(PROCEDURES_DATA)}")
+    except Exception as loader_error:
+        print(f"[PIPELINE DATA WARNING - LOADER]: {loader_error}")
+        with open("data/procedures.json", "r", encoding="utf-8") as f:
+            PROCEDURES_DATA = json.load(f)
+
+    PROCEDURE_ID_BY_NAME = {}
+    PROCEDURE_NAME_BY_ID = {}
+    for item in PROCEDURES_DATA:
+        if not isinstance(item, dict):
+            continue
+        content = item.get("content") or {}
+        proc_name = item.get("name") or content.get("Tên thủ tục") or ""
+
+        # Một số nguồn dữ liệu dùng mã đầy đủ ở item.id nhưng mã rút gọn ở content["Mã thủ tục"].
+        # Lưu cả hai để request truyền 2.000575 vẫn khóa được chunk có id 2.000575.000.00.00.H35.
+        raw_ids = [
+            item.get("id"),
+            content.get("Mã thủ tục"),
+            item.get("search_code"),
+        ]
+        proc_id = next((_clean_proc_id_value(x) for x in raw_ids if _clean_proc_id_value(x)), "")
+
+        if proc_name:
+            PROCEDURE_ID_BY_NAME[proc_name] = proc_id
+
+        if proc_name:
+            for raw_id in raw_ids:
+                for alias in _procedure_id_aliases(raw_id):
+                    PROCEDURE_NAME_BY_ID[alias] = proc_name
 except Exception as e:
     print(f"[FILE LOAD WARNING - PROCEDURES]: {e}")
+    PROCEDURES_DATA = []
     PROCEDURE_ID_BY_NAME = {}
+    PROCEDURE_NAME_BY_ID = {}
 
 # ===== KHỞI TẠO RERANKER (Chỉ load 1 lần duy nhất để tối ưu hiệu năng) =====
 try:
@@ -322,7 +385,7 @@ _ACTION_KEYWORDS = {
     ],
     "notify": ["thông báo", "thong bao", "công bố", "cong bo"],
     "certify": ["xác nhận", "xac nhan", "chứng nhận", "chung nhan", "giấy xác nhận", "giay xac nhan"],
-    "license": ["cấp giấy phép", "cap giay phep", "giấy phép", "giay phep"],
+    "license": ["cấp giấy phép", "cap giay phep", "giấy phép", "giay phep", "giấy phép kinh doanh", "đăng ký kinh doanh", "hộ kinh doanh"],
     "support": ["hỗ trợ", "ho tro", "trợ cấp", "tro cap", "mai táng", "mai tang"],
     "terminate": ["thu hồi", "thu hoi", "hủy", "huy", "chấm dứt", "cham dut", "đóng", "dong"],
 }
@@ -857,8 +920,18 @@ def _apply_common_procedure_override(query_lower: str):
             if matched:
                 return matched
 
-    # Cưới vợ/chồng = đăng ký kết hôn, trừ khi câu đang hỏi giấy độc thân đã bắt ở trên.
-    if has_any(["cưới vợ", "cưới chồng", "đăng ký kết hôn", "kết hôn"]):
+    # Cưới vợ/chồng/giấy cưới = đăng ký kết hôn, trừ khi câu đang hỏi giấy độc thân đã bắt ở trên.
+    # Đây là nhóm alias đời thường, chỉ dùng để chọn đúng thủ tục, không dùng để tự bịa câu trả lời.
+    if has_any([
+        "cưới vợ", "cưới chồng", "đăng ký kết hôn", "đăng kí kết hôn",
+        "kết hôn", "giấy cưới", "làm giấy cưới", "đăng ký cưới", "đăng kí cưới",
+        "giấy kết hôn", "chứng nhận kết hôn",
+    ]):
+        return _resolve_proc_name("Thủ tục đăng ký kết hôn")
+
+    # Câu hỏi quan hệ họ hàng đi kèm ý định kết hôn/cưới cũng phải neo về đăng ký kết hôn,
+    # tránh resolver tổng quát bắt nhầm sang thủ tục đất đai/doanh nghiệp có nhiều token chung.
+    if has_any(["con chú", "con bác", "anh em họ", "họ hàng", "ba đời", "phạm vi ba đời"]) and has_any(["kết hôn", "cưới", "đăng ký", "đăng kí"]):
         return _resolve_proc_name("Thủ tục đăng ký kết hôn")
 
     # Nuôi con nuôi đời thường: nếu không nói yếu tố nước ngoài thì ưu tiên trong nước.
@@ -875,7 +948,7 @@ def _apply_common_procedure_override(query_lower: str):
         return _resolve_proc_name("Đăng ký thành lập công ty TNHH một thành viên")
 
     # Góp vốn/cổ phần/mấy anh em mở công ty = thành lập công ty cổ phần.
-    if "công ty cổ phần" in q and has_any(["mở", "thành lập", "góp vốn", "mấy anh em"]):
+    if "công ty cổ phần" in q and has_any(["m mở", "thành lập", "góp vốn", "mấy anh em"]):
         return _resolve_proc_name("Đăng ký thành lập công ty cổ phần")
 
     # C/O đọc đời thường.
@@ -926,6 +999,123 @@ def _is_context_switch_query(query: str) -> bool:
     return any(m in q for m in markers)
 
 
+def _has_hard_context_anchor(raw_query: str) -> bool:
+    """
+    Dấu hiệu người dùng đang hỏi nối tiếp thủ tục đã chọn.
+    Khác với _has_context_reference(), hàm này không coi riêng chữ "còn"
+    là đủ mạnh, vì "còn thủ tục hộ kinh doanh..." có thể là chuyển chủ đề.
+    """
+    q = (raw_query or "").lower().strip()
+    q = re.sub(r"\s+", " ", q)
+
+    hard_markers = [
+        "thủ tục này",
+        "việc này",
+        "cái này",
+        "cái đó",
+        "trường hợp này",
+        "như trên",
+        "như vậy",
+        "vậy thì",
+        "thế thì",
+        "thế còn",
+        "nó",
+        "giấy này",
+        "hai loại giấy này",
+        "mấy giấy này",
+        "phần này",
+        "còn cái này",
+        "lệ phí",
+        "phí",
+        "thời hạn",
+        "bao lâu",
+        "nộp ở đâu",
+        "ra xã",
+        "bưu điện",
+        "online",
+        "hồ sơ",
+        "giấy tờ",
+    ]
+    return any(marker in q for marker in hard_markers)
+
+
+def _has_strong_switch_phrase(raw_query: str) -> bool:
+    """
+    Chỉ các cụm thật sự báo hiệu đổi thủ tục mới được xem là switch mạnh.
+    Không dùng các cụm mơ hồ như "không phải" hoặc "lần đầu" vì chúng hay xuất hiện
+    trong câu bẫy/đính chính của cùng một thủ tục.
+    """
+    q = (raw_query or "").lower().strip()
+    q = re.sub(r"\s+", " ", q)
+
+    markers = [
+        "chuyển sang",
+        "thay vào đó",
+        "sang thủ tục",
+        "hỏi thủ tục khác",
+        "thủ tục khác",
+        "còn thủ tục",
+        "không phải thủ tục này",
+        "không hỏi thủ tục này",
+        "tôi muốn hỏi thủ tục",
+        "mình muốn hỏi thủ tục",
+        "em muốn hỏi thủ tục",
+    ]
+    return any(marker in q for marker in markers)
+
+
+def _explicit_proc_match_strength(raw_query: str, explicit_proc: str) -> float:
+    """
+    Ước lượng độ chắc của thủ tục vừa resolver ra từ chính câu hiện tại.
+    Điểm thấp nghĩa là resolver đang đoán theo vài token nhiễu, không nên thắng
+    selected_procedure trong phiên.
+    """
+    if not raw_query or not explicit_proc:
+        return 0.0
+
+    try:
+        return float(_procedure_match_score(raw_query, explicit_proc))
+    except Exception:
+        return 0.0
+
+
+def _should_keep_selected_context(raw_query: str, selected_proc_name: str = "", explicit_proc: str = "", field=None) -> bool:
+    """
+    Luật chốt ngữ cảnh hội thoại.
+
+    Khi phiên chat đã có selected_procedure, các câu hỏi nối tiếp có field rõ
+    hoặc có đại từ ngữ cảnh phải bám selected_procedure. Resolver chỉ được đổi
+    thủ tục nếu câu hiện tại có tín hiệu chuyển thủ tục đủ mạnh.
+    """
+    if not selected_proc_name:
+        return False
+
+    if explicit_proc and _same_procedure_name(explicit_proc, selected_proc_name):
+        return True
+
+    if _has_hard_context_anchor(raw_query):
+        return True
+
+    # Nếu câu có field rõ như hồ sơ/phí/thời hạn/nơi nộp nhưng không hề có
+    # cụm chuyển thủ tục mạnh, coi là hỏi tiếp thủ tục đang chọn.
+    if field and not _has_strong_switch_phrase(raw_query):
+        strength = _explicit_proc_match_strength(raw_query, explicit_proc) if explicit_proc else 0.0
+
+        # Nếu resolver chỉ đoán yếu, không cho nó cướp ngữ cảnh.
+        if not explicit_proc or strength < 85:
+            return True
+
+        # Nếu câu không có bằng chứng nêu thủ tục mới đủ rõ, vẫn giữ ngữ cảnh cũ.
+        if not _has_explicit_procedure_signal(raw_query):
+            return True
+
+    # Câu điều hướng/cụt như "hướng dẫn tiếp", "làm sao bây giờ" luôn bám session.
+    if _is_guidance_query(raw_query) and not _has_strong_switch_phrase(raw_query):
+        return True
+
+    return False
+
+
 def _keyword_detect_procedure(query_lower: str):
     """
     Fallback keyword scoring cũ, nhưng có thêm điểm/phạt theo action family.
@@ -948,15 +1138,16 @@ def detect_procedure_name(query: str, history=None, raw_query: str = ""):
     raw_query_lower = (raw_query or query or "").lower()
     current_text = raw_query or query or ""
 
-    # Ưu tiên 0: resolver tổng quát chỉ dựa vào câu hiện tại.
-    robust_match = _robust_detect_procedure_from_current_query(current_text)
-    if robust_match:
-        return robust_match
-
-    # Ưu tiên 1: một số cách gọi đời thường cực phổ biến.
+    # Ưu tiên 0: một số cách gọi đời thường cực phổ biến, độ tin cậy cao.
+    # Đặt trước robust resolver để tránh các câu ngắn/đời thường bị token chung kéo sang thủ tục khác.
     override_match = _apply_common_procedure_override(raw_query_lower or query_lower)
     if override_match:
         return override_match
+
+    # Ưu tiên 1: resolver tổng quát chỉ dựa vào câu hiện tại.
+    robust_match = _robust_detect_procedure_from_current_query(current_text)
+    if robust_match:
+        return robust_match
 
     # Ưu tiên 2: tìm chính xác tên thủ tục trong câu hỏi hiện tại.
     for proc_name in ENTITIES_DATA.keys():
@@ -993,8 +1184,41 @@ def detect_procedure_name(query: str, history=None, raw_query: str = ""):
     return None
 
 
-def detect_field(query: str):
-    q = query.lower()
+def _strip_procedure_mention_for_intent(query: str, procedure_name: str = "") -> str:
+    """
+    Bỏ tên thủ tục khỏi câu hỏi trước khi dò field/ý định.
+
+    Nhiều tên thủ tục có chứa từ khóa field, ví dụ "mai táng phí".
+    Nếu quét trực tiếp toàn câu, mọi câu hỏi về thủ tục này sẽ bị hiểu nhầm
+    là hỏi phí/lệ phí.
+    """
+    value = (query or "").lower()
+    if not value:
+        return ""
+
+    variants = set()
+    if procedure_name:
+        proc = (procedure_name or "").strip()
+        if proc:
+            variants.add(proc)
+            without_prefix = re.sub(r"(?i)^thủ tục\s+", "", proc).strip()
+            variants.add(without_prefix)
+            variants.add("thủ tục " + without_prefix)
+            try:
+                variants.add(_clean_procedure_display_name(proc))
+            except Exception:
+                pass
+
+    for name in sorted([v for v in variants if v], key=len, reverse=True):
+        value = re.sub(re.escape(name.lower()), " ", value, flags=re.IGNORECASE)
+
+    value = re.sub(r"\bthủ\s+tục\b\s*:?", " ", value)
+    value = re.sub(r"\s+", " ", value).strip()
+    return value
+
+
+def detect_field(query: str, procedure_name: str = ""):
+    q = _strip_procedure_mention_for_intent(query, procedure_name)
 
     field_map = {
         "phí": ["Phí", "Lệ phí"],
@@ -1024,16 +1248,41 @@ def detect_field(query: str):
             if mapped:
                 add_fields(mapped)
 
+    if any(x in q for x in [
+        "hạn sử dụng",
+        "còn hạn",
+        "dưới 6 tháng",
+        "trong 6 tháng",
+        "giấy khám sức khỏe",
+        "giấy xác nhận thu nhập",
+    ]):
+        add_fields(["Thành phần hồ sơ", "Yêu cầu điều kiện"])
+
     # Luật bổ sung cho câu thường và câu bẫy.
+    # Điều kiện thực hiện phải được nhận diện trước thời hạn.
+    # Ví dụ "19 tuổi 11 tháng" là hỏi điều kiện tuổi, không phải thời hạn xử lý hồ sơ.
+    condition_markers = [
+        "điều kiện", "đủ điều kiện", "được chưa", "được không", "có được",
+        "đủ tuổi", "tuổi", "tự nguyện", "cấm", "bị cấm",
+        "anh em", "con chú", "con bác", "anh em họ", "họ hàng", "ba đời", "phạm vi ba đời",
+    ]
+    is_condition_like = any(m in q for m in condition_markers)
+    is_age_or_kinship_context = any(m in q for m in [
+        "tuổi", "đủ tuổi", "tự nguyện", "anh em", "con chú", "con bác", "anh em họ", "họ hàng", "ba đời", "phạm vi ba đời",
+    ])
+    if is_condition_like:
+        add_fields(["Yêu cầu điều kiện"])
+
+    # Tránh nhầm "tháng" trong "hạn sử dụng dưới 6 tháng" thành "Thời hạn giải quyết".
     if (
-        re.search(r"\b\d+\s*(ngày|giờ|tháng)\b", q)
+        (not is_age_or_kinship_context and re.search(r"\b\d+\s*(ngày|giờ)\b", q))
+        or (re.search(r"\b\d+\s*(tháng)\b", q) and not any(x in q for x in ["hạn", "sử dụng", "hạn sử dụng"]))
         or "chờ" in q
         or "mất bao lâu" in q
         or "bao lâu" in q
-        or "thời hạn" in q
+        or "thời hạn" in q and not any(x in q for x in ["hạn sử dụng", "hạn giấy", "còn hạn"])
         or "lấy ngay" in q
         or "trong ngày" in q
-        or "3 tháng" in q
     ):
         add_fields(["Thời hạn giải quyết", "Cách thức thực hiện"])
 
@@ -1047,10 +1296,22 @@ def detect_field(query: str):
         or "đóng bao nhiêu" in q
         or "bao nhiêu tiền" in q
         or "mấy nghìn" in q
-        or "online" in q
-        or "trực tuyến" in q
     ):
         add_fields(["Phí", "Lệ phí", "Cách thức thực hiện"])
+
+    if (
+        "online" in q
+        or "trực tuyến" in q
+        or "nộp qua mạng" in q
+        or "nộp trực tuyến" in q
+        or "dịch vụ công" in q
+        or "bưu chính" in q
+        or "qua bưu điện" in q
+        or "hình thức" in q
+        or "cách nộp" in q
+        or "cách thức" in q
+    ):
+        add_fields(["Cách thức thực hiện"])
 
     if (
         "giấy tờ" in q
@@ -1270,7 +1531,7 @@ def _clean_list_topic_text(text: str) -> str:
     # ví dụ không được xóa "đi" trong "đất đai", hoặc "a" trong "mại".
     for phrase in sorted(remove_phrases, key=len, reverse=True):
         pattern = r"(?<!\w)" + re.escape(phrase) + r"(?!\w)"
-        value = re.sub(pattern, " ", value)
+        value = re.sub(pattern, " ", value) 
 
     value = re.sub(r"[,.?;:!]+", " ", value)
     value = re.sub(r"\s+", " ", value).strip()
@@ -1637,11 +1898,231 @@ def build_qdrant_filter(**conditions):
     return Filter(must=must_conditions)
 
 
+# ===== PROCEDURE LOCK / SOURCE GUARD HELPERS =====
+def _normalize_procedure_id(value) -> str:
+    return _clean_proc_id_value(value)
+
+
+def _same_procedure_id(left, right) -> bool:
+    """
+    So khớp mã thủ tục an toàn hơn phép ==.
+    Cho phép mã rút gọn 2.000575 khớp với mã đầy đủ 2.000575.000.00.00.H35.
+    """
+    left = _normalize_procedure_id(left)
+    right = _normalize_procedure_id(right)
+    if not left or not right:
+        return False
+    if left == right:
+        return True
+
+    left_aliases = set(_procedure_id_aliases(left))
+    right_aliases = set(_procedure_id_aliases(right))
+    if left_aliases & right_aliases:
+        return True
+
+    return left.startswith(right + ".") or right.startswith(left + ".")
+
+
+def _normalize_procedure_name_for_compare(value: str) -> str:
+    value = re.sub(r"(?i)^thủ tục\s+", "", value or "").strip()
+    return _norm_for_match(value)
+
+
+def _same_procedure_name(left: str, right: str) -> bool:
+    left_norm = _normalize_procedure_name_for_compare(left)
+    right_norm = _normalize_procedure_name_for_compare(right)
+    if not left_norm or not right_norm:
+        return False
+    if left_norm == right_norm:
+        return True
+
+    # Cho phép tên request là phần đầu của tên đầy đủ trong dữ liệu,
+    # ví dụ: "Cấp lại Giấy chứng nhận đăng ký hộ kinh doanh"
+    # khớp với "Cấp lại..., Cấp đổi sang...".
+    shorter, longer = sorted([left_norm, right_norm], key=len)
+    return len(shorter) >= 12 and shorter in longer
+
+
+def _resolve_procedure_name_by_id(procedure_id: str) -> str:
+    proc_id = _normalize_procedure_id(procedure_id)
+    if not proc_id:
+        return ""
+
+    for alias in _procedure_id_aliases(proc_id):
+        name = PROCEDURE_NAME_BY_ID.get(alias)
+        if name:
+            return name
+
+    for known_id, name in PROCEDURE_NAME_BY_ID.items():
+        if _same_procedure_id(proc_id, known_id):
+            return name
+
+    return ""
+
+
+def _resolve_locked_procedure(procedure_id: str = "", procedure_name: str = ""):
+    """
+    Chuẩn hóa khóa thủ tục từ request/frontend hoặc session.
+    Trả về (procedure_id, procedure_name). Nếu chỉ có tên thì cố gắng lấy mã;
+    nếu chỉ có mã thì cố gắng lấy tên từ procedures.json.
+    """
+    proc_id = _normalize_procedure_id(procedure_id)
+    proc_name = (procedure_name or "").strip()
+
+    # Nếu có mã thì thử lấy tên chuẩn từ dữ liệu trước. Mã request đáng tin hơn resolver.
+    name_from_id = _resolve_procedure_name_by_id(proc_id) if proc_id else ""
+
+    if proc_name:
+        proc_name = _resolve_proc_name(proc_name) or proc_name
+
+    if name_from_id:
+        # Tuyệt đối không để name_from_id ghi đè proc_name nếu ID bị trùng giữa các thủ tục
+        if not proc_name:
+            proc_name = name_from_id
+        elif _same_procedure_name(proc_name, name_from_id):
+            proc_name = name_from_id
+
+    if proc_id and not proc_name:
+        proc_name = name_from_id
+
+    if proc_name and not proc_id:
+        proc_id = _normalize_procedure_id(PROCEDURE_ID_BY_NAME.get(proc_name, ""))
+
+    return proc_id, proc_name
+
+
+def _get_metadata_procedure_id(meta: dict) -> str:
+    meta = meta or {}
+    return _normalize_procedure_id(
+        meta.get("procedure_id")
+        or meta.get("id")
+        or meta.get("search_code")
+        or meta.get("procedure_code")
+    )
+
+
+def _get_metadata_procedure_name(meta: dict) -> str:
+    meta = meta or {}
+    return meta.get("procedure_name") or meta.get("name") or ""
+
+
+def _doc_matches_locked_procedure(doc, procedure_name: str = "", procedure_id: str = "") -> bool:
+    """
+    Chốt chặn nguồn: doc chỉ hợp lệ nếu thuộc đúng thủ tục đã khóa.
+    Ưu tiên so bằng procedure_id/id; nếu metadata thiếu id thì fallback sang name.
+    """
+    if not procedure_id and not procedure_name:
+        return True
+
+    meta = getattr(doc, "metadata", {}) or {}
+    doc_id = _get_metadata_procedure_id(meta)
+    doc_name = _get_metadata_procedure_name(meta)
+
+    match_id = bool(procedure_id and doc_id and _same_procedure_id(doc_id, procedure_id))
+    match_name = bool(procedure_name and doc_name and _same_procedure_name(doc_name, procedure_name))
+
+    if procedure_name:
+        if match_name:
+            return True
+        # Chặn đứng chunk có tên hoàn toàn khác lọt vào do trùng ID
+        if match_id and not doc_name:
+            return True
+        return False
+
+    if procedure_id and match_id:
+        return True
+
+    return False
+
+
+def _guard_docs_by_locked_procedure(docs, procedure_name: str = "", procedure_id: str = "", stage: str = ""):
+    if not docs or (not procedure_name and not procedure_id):
+        return docs or []
+
+    filtered = [
+        doc for doc in docs
+        if _doc_matches_locked_procedure(doc, procedure_name=procedure_name, procedure_id=procedure_id)
+    ]
+
+    removed = len(docs) - len(filtered)
+    if removed:
+        print(
+            f"[SOURCE GUARD] stage={stage or 'unknown'} removed={removed} "
+            f"locked_id={procedure_id or None} locked_name={procedure_name or None}"
+        )
+
+    return filtered
+
+
+def _procedure_filter_candidates(procedure_name: str = "", procedure_id: str = "", section_type: str = ""):
+    """
+    Qdrant payload ở các lần build có thể dùng metadata.procedure_id hoặc metadata.id.
+    Hàm này thử theo thứ tự an toàn: procedure_id -> id -> name.
+    """
+    candidates = []
+    proc_id = _normalize_procedure_id(procedure_id)
+
+    def add(conditions):
+        clean = {k: v for k, v in conditions.items() if v}
+        if clean and clean not in candidates:
+            candidates.append(clean)
+
+    if proc_id:
+        for alias in _procedure_id_aliases(proc_id):
+            add({"procedure_id": alias, "section_type": section_type})
+            add({"id": alias, "section_type": section_type})
+            add({"search_code": alias, "section_type": section_type})
+            add({"procedure_code": alias, "section_type": section_type})
+
+    if procedure_name:
+        add({"name": procedure_name, "section_type": section_type})
+        add({"procedure_name": procedure_name, "section_type": section_type})
+
+    return candidates
+
+
+def _scroll_docs_by_procedure(db, procedure_name: str = "", procedure_id: str = "", limit: int = 80, section_type: str = ""):
+    """Lấy docs theo thủ tục đã khóa, ưu tiên mã thủ tục để tránh nhầm tên."""
+    for conditions in _procedure_filter_candidates(procedure_name, procedure_id, section_type):
+        qdrant_filter = build_qdrant_filter(**conditions)
+        docs = _scroll_docs_by_filter(db=db, qdrant_filter=qdrant_filter, limit=limit)
+        docs = _guard_docs_by_locked_procedure(
+            docs,
+            procedure_name=procedure_name,
+            procedure_id=procedure_id,
+            stage=f"scroll:{conditions}",
+        )
+        if docs:
+            return docs
+    return []
+
+
+def _similarity_search_by_procedure(db, query: str, k: int, procedure_name: str = "", procedure_id: str = "", section_type: str = ""):
+    """Vector search nhưng vẫn bị khóa trong đúng thủ tục."""
+    for conditions in _procedure_filter_candidates(procedure_name, procedure_id, section_type=section_type):
+        qdrant_filter = build_qdrant_filter(**conditions)
+        try:
+            docs = db.similarity_search(query, k=k, filter=qdrant_filter)
+        except Exception as e:
+            print(f"[PROC FILTER VECTOR ERROR] conditions={conditions}: {e}")
+            docs = []
+
+        docs = _guard_docs_by_locked_procedure(
+            docs,
+            procedure_name=procedure_name,
+            procedure_id=procedure_id,
+            stage=f"vector:{conditions}",
+        )
+        if docs:
+            return docs
+    return []
+
+
 
 # ===== SPEED HELPERS =====
 def _has_context_reference(query: str) -> bool:
     """
-    Nhận diện câu hỏi phụ thuộc ngữ cảnh: "vậy", "còn thủ tục này", "nó", ...
+    Nhận diện câu hỏi phụ thuộc ngữ cảnh: "vậy", "còn thủ tục này", "việc này", "cái này", "nó", ...
     Các câu này vẫn nên rewrite để gắn lại tên thủ tục từ lịch sử.
     """
     q = query.lower().strip()
@@ -1716,9 +2197,10 @@ def _is_trap_like(query: str) -> bool:
         "3 tháng",
         "mặt trăng",
         "lấy ngày",
-        "cộng",
-        "nhân",
-        "chia",
+        "cộng thêm",
+        "cộng vào",
+        "nhân với",
+        "chia cho",
         "sai",
         "đừng nhầm",
     ]
@@ -1942,15 +2424,23 @@ def _friendly_no_data(label: str, detected_proc: str) -> str:
     )
 
 
-def _format_document_direct_answer(detected_proc: str, context_chunks):
+def _format_document_direct_answer(detected_proc: str, context_chunks, raw_query: str = ""):
     """
     Format riêng cho câu hỏi hồ sơ/giấy tờ theo lối dễ đọc cho người dân.
+
+    Bản v2 phòng thủ dữ liệu mới:
+    - Bỏ các dòng "Lưu ý", "Trường hợp...", số lượng 0 bản chính khỏi danh sách giấy tờ chính.
+    - Nếu người dùng hỏi ra xã/trực tiếp thì không ưu tiên giấy tờ chỉ dành cho nộp trực tuyến.
+    - Chỉ dùng các mục bị lọc khi thật sự không tìm thấy giấy tờ chính nào.
     """
-    items = []
+    main_items = []
+    fallback_items = []
     seen = set()
+    direct_submit = _is_direct_submit_query(raw_query, detected_proc)
 
     for chunk in context_chunks:
         body = _strip_chunk_header(chunk)
+        nhom_ho_so = _extract_label_block(body, "Nhóm hồ sơ:")
         ten_giay_to = _extract_label_block(body, "Tên giấy tờ:")
         so_luong = _extract_label_block(body, "Số lượng:")
 
@@ -1962,14 +2452,23 @@ def _format_document_direct_answer(detected_proc: str, context_chunks):
             continue
         seen.add(key)
 
-        item_lines = [_shorten_for_citizen(ten_giay_to, max_len=360)]
-        if so_luong:
+        item_lines = [_shorten_for_citizen(ten_giay_to, max_len=420)]
+        if so_luong and not so_luong.strip().lower().startswith("0"):
             item_lines.append(f"Số lượng: {_shorten_for_citizen(so_luong, max_len=160)}")
+        item = "\n".join(item_lines)
 
-        items.append("\n".join(item_lines))
-        if len(items) >= DIRECT_ANSWER_MAX_CHUNKS:
+        is_note = _is_document_note_or_non_required(ten_giay_to, so_luong, nhom_ho_so)
+        is_online_only = direct_submit and _is_online_only_document_text(" ".join([nhom_ho_so, ten_giay_to]))
+
+        if is_note or is_online_only:
+            fallback_items.append(item)
+            continue
+
+        main_items.append(item)
+        if len(main_items) >= DIRECT_ANSWER_MAX_CHUNKS:
             break
 
+    items = main_items or fallback_items[:DIRECT_ANSWER_MAX_CHUNKS]
     if not items:
         return None
 
@@ -1983,9 +2482,11 @@ def _format_document_direct_answer(detected_proc: str, context_chunks):
         lines.append(f"{idx}. {item}")
         lines.append("")
 
-    lines.append("Nếu bạn muốn, tôi có thể chỉ tiếp nơi nộp hồ sơ hoặc thời hạn giải quyết.")
+    if main_items and fallback_items:
+        lines.append("Một số lưu ý hoặc trường hợp đặc biệt có thể phát sinh, nhưng các mục trên là phần giấy tờ chính cần chuẩn bị trước.")
+    else:
+        lines.append("Nếu bạn muốn, tôi có thể chỉ tiếp nơi nộp hồ sơ hoặc thời hạn giải quyết.")
     return _tidy_answer("\n".join(lines))
-
 
 def _clean_fee_text(text: str) -> str:
     """
@@ -2158,8 +2659,62 @@ def _as_field_list(field):
     return list(field)
 
 
-def _is_fee_question(raw_query: str) -> bool:
-    q = (raw_query or "").lower()
+def _is_condition_field(field) -> bool:
+    if not field:
+        return False
+    fields_list = [str(f).lower() for f in _as_field_list(field)]
+    return any("yêu cầu điều kiện" in f or "điều kiện" in f for f in fields_list)
+
+
+def _is_direct_submit_query(raw_query: str, procedure_name: str = "") -> bool:
+    q = _strip_procedure_mention_for_intent(raw_query, procedure_name)
+    return any(x in q for x in [
+        "ra xã", "lên xã", "đến xã", "tại xã", "trực tiếp", "mang",
+        "đem", "nộp tại", "nộp ở", "đến ubnd", "ủy ban", "uỷ ban",
+    ])
+
+
+def _is_online_only_document_text(text: str) -> bool:
+    q = (text or "").lower()
+
+    # Mẫu điện tử tương tác chỉ dành cho nộp trực tuyến.
+    if "mẫu hộ tịch điện tử" in q or "mau ho tich dien tu" in q:
+        return True
+
+    has_online = any(x in q for x in [
+        "trực tuyến", "truc tuyen", "cổng dịch vụ công", "cong dich vu cong",
+        "tải lên", "tai len",
+    ])
+    has_direct = any(x in q for x in [
+        "trực tiếp", "truc tiep", "xuất trình", "xuat trinh", "mang", "nộp/xuất trình", "nop/xuat trinh",
+    ])
+
+    # Nếu một giấy tờ ghi cả trực tiếp và trực tuyến thì vẫn giữ khi người dân hỏi ra xã,
+    # vì nó vẫn là giấy tờ có thể phải xuất trình trực tiếp.
+    return has_online and not has_direct
+
+def _is_document_note_or_non_required(ten_giay_to: str, so_luong: str = "", nhom_ho_so: str = "") -> bool:
+    text = re.sub(r"\s+", " ", (ten_giay_to or "").strip().lower())
+    group = re.sub(r"\s+", " ", (nhom_ho_so or "").strip().lower())
+    qty = re.sub(r"\s+", " ", (so_luong or "").strip().lower())
+
+    if "lưu ý" in group or "luu y" in group:
+        return True
+    if qty.startswith("0 ") or qty == "0" or "0 bản" in qty or "0 ban" in qty:
+        return True
+
+    note_starts = (
+        "trường hợp", "truong hop", "+",
+        "người tiếp nhận", "nguoi tiep nhan",
+        "đối với", "doi voi", "bản chụp", "ban chup",
+        "cá nhân có quyền", "ca nhan co quyen",
+        "nếu bên", "neu ben", "người có yêu cầu", "nguoi co yeu cau",
+    )
+    return text.startswith(note_starts)
+
+
+def _is_fee_question(raw_query: str, procedure_name: str = "") -> bool:
+    q = _strip_procedure_mention_for_intent(raw_query, procedure_name)
     return any(x in q for x in [
         "phí",
         "lệ phí",
@@ -2174,8 +2729,8 @@ def _is_fee_question(raw_query: str) -> bool:
     ])
 
 
-def _is_time_question(raw_query: str) -> bool:
-    q = (raw_query or "").lower()
+def _is_time_question(raw_query: str, procedure_name: str = "") -> bool:
+    q = _strip_procedure_mention_for_intent(raw_query, procedure_name)
     return any(x in q for x in [
         "bao lâu",
         "mất bao lâu",
@@ -2189,8 +2744,8 @@ def _is_time_question(raw_query: str) -> bool:
     ])
 
 
-def _is_location_question(raw_query: str) -> bool:
-    q = (raw_query or "").lower()
+def _is_location_question(raw_query: str, procedure_name: str = "") -> bool:
+    q = _strip_procedure_mention_for_intent(raw_query, procedure_name)
     return any(x in q for x in [
         "ở đâu",
         "nộp ở đâu",
@@ -2206,8 +2761,25 @@ def _is_location_question(raw_query: str) -> bool:
     ])
 
 
-def _is_document_question(raw_query: str) -> bool:
-    q = (raw_query or "").lower()
+def _is_method_question(raw_query: str, procedure_name: str = "") -> bool:
+    q = _strip_procedure_mention_for_intent(raw_query, procedure_name)
+    return any(x in q for x in [
+        "cách thức",
+        "hình thức",
+        "cách nộp",
+        "nộp online",
+        "nộp trực tuyến",
+        "trực tuyến",
+        "online",
+        "dịch vụ công",
+        "bưu chính",
+        "qua bưu điện",
+        "nộp qua mạng",
+    ])
+
+
+def _is_document_question(raw_query: str, procedure_name: str = "") -> bool:
+    q = _strip_procedure_mention_for_intent(raw_query, procedure_name)
     return any(x in q for x in [
         "hồ sơ",
         "giấy tờ",
@@ -2353,6 +2925,279 @@ def _format_agency_result_direct_answer(detected_proc: str, context_chunks):
     return _tidy_answer("\n".join(lines))
 
 
+def _is_result_question(raw_query: str, procedure_name: str = "") -> bool:
+    q = _strip_procedure_mention_for_intent(raw_query, procedure_name)
+    return any(x in q for x in [
+        "kết quả",
+        "nhận được gì",
+        "được cấp gì",
+        "trả về gì",
+        "làm xong được gì",
+        "làm xong nhận",
+        "giấy gì",
+    ])
+
+
+def _format_result_only_direct_answer(detected_proc: str, context_chunks):
+    results = []
+    seen = set()
+
+    for chunk in context_chunks:
+        section = _extract_chunk_section(chunk)
+        if section != "Kết quả thực hiện":
+            continue
+
+        body = _strip_chunk_header(chunk).strip()
+        if not body:
+            continue
+
+        value = _shorten_for_citizen(body, max_len=320)
+        key = re.sub(r"\s+", " ", value.lower()).strip()
+        if key in seen:
+            continue
+
+        seen.add(key)
+        results.append(value)
+        if len(results) >= DIRECT_ANSWER_MAX_CHUNKS:
+            break
+
+    if not results:
+        return _friendly_no_data("kết quả thực hiện", detected_proc)
+
+    proc = _friendly_proc_name(detected_proc)
+    lines = [f"Kết quả nhận được của thủ tục {proc}:", ""]
+    for item in results:
+        lines.append(f"- {item}")
+    return _tidy_answer("\n".join(lines))
+
+
+def _format_method_only_direct_answer(detected_proc: str, context_chunks, raw_query: str = ""):
+    methods = []
+    seen = set()
+
+    for chunk in context_chunks:
+        section = _extract_chunk_section(chunk)
+        if section != "Cách thức thực hiện":
+            continue
+
+        body = _strip_chunk_header(chunk).strip()
+        if not body:
+            continue
+
+        method = _compact_method_name(_extract_label_block(body, "Hình thức:"))
+        deadline = _clean_time_text(_extract_label_block(body, "Thời hạn:"))
+        fee = _clean_fee_text(_extract_label_block(body, "Mức phí/Lệ phí:"))
+
+        if method:
+            value = method
+            extra = []
+            if deadline and _is_time_question(raw_query, detected_proc):
+                extra.append(f"thời hạn: {deadline}")
+            if fee and _is_fee_question(raw_query, detected_proc):
+                extra.append(f"phí/lệ phí: {fee}")
+            if extra:
+                value += " (" + "; ".join(extra) + ")"
+        else:
+            value = _shorten_for_citizen(body, max_len=260)
+
+        key = re.sub(r"\s+", " ", value.lower()).strip()
+        if not value or key in seen:
+            continue
+        seen.add(key)
+        methods.append(value)
+        if len(methods) >= DIRECT_ANSWER_MAX_CHUNKS:
+            break
+
+    if not methods:
+        return _friendly_no_data("cách thức thực hiện", detected_proc)
+
+    proc = _friendly_proc_name(detected_proc)
+    lines = [f"Cách thực hiện thủ tục {proc}:", ""]
+    for item in methods:
+        lines.append(f"- {item}")
+    return _tidy_answer("\n".join(lines))
+
+
+_FIELD_GROUP_ORDER = ["document", "agency", "time", "fee", "method", "result", "condition", "legal"]
+_FIELD_GROUP_LABELS = {
+    "document": "Hồ sơ cần chuẩn bị",
+    "agency": "Nơi nộp / cơ quan giải quyết",
+    "time": "Thời hạn giải quyết",
+    "fee": "Phí/lệ phí",
+    "method": "Cách thực hiện",
+    "result": "Kết quả nhận được",
+    "condition": "Điều kiện cần lưu ý",
+    "legal": "Căn cứ pháp lý",
+}
+
+
+def _field_groups_from_query(raw_query: str, field, procedure_name: str = ""):
+    fields = set(_as_field_list(field))
+    groups = []
+
+    def add(group):
+        if group not in groups:
+            groups.append(group)
+
+    if "Thành phần hồ sơ" in fields and _is_document_question(raw_query, procedure_name):
+        add("document")
+
+    if "Cơ quan thực hiện" in fields and _is_location_question(raw_query, procedure_name):
+        add("agency")
+
+    if "Thời hạn giải quyết" in fields and _is_time_question(raw_query, procedure_name):
+        add("time")
+
+    if ("Phí" in fields or "Lệ phí" in fields) and _is_fee_question(raw_query, procedure_name):
+        add("fee")
+
+    if "Cách thức thực hiện" in fields and _is_method_question(raw_query, procedure_name):
+        add("method")
+
+    if "Kết quả thực hiện" in fields and _is_result_question(raw_query, procedure_name):
+        add("result")
+
+    if "Yêu cầu điều kiện" in fields:
+        add("condition")
+
+    if any(f in fields for f in ["Căn cứ pháp lý", "Cơ quan ban hành", "Cơ quan phối hợp"]):
+        add("legal")
+
+    # Nếu câu hỏi ghép nhưng một vài field bị detect mà không bắt được keyword ý định,
+    # vẫn giữ lại theo field để tránh trả thiếu. Tuy nhiên không coi Cách thức đi kèm phí/thời hạn là một nhóm riêng.
+    if not groups:
+        if "Thành phần hồ sơ" in fields:
+            add("document")
+        if "Cơ quan thực hiện" in fields:
+            add("agency")
+        if "Thời hạn giải quyết" in fields:
+            add("time")
+        if "Phí" in fields or "Lệ phí" in fields:
+            add("fee")
+        if "Kết quả thực hiện" in fields:
+            add("result")
+        if "Cách thức thực hiện" in fields:
+            add("method")
+
+    return [g for g in _FIELD_GROUP_ORDER if g in groups]
+
+
+def _effective_fields_for_retrieval(raw_query: str, field, procedure_name: str = ""):
+    """
+    Giảm số field cần lấy trước khi truy xuất Qdrant.
+
+    Lợi ích:
+    - Hỏi phí thì không kéo hồ sơ.
+    - Hỏi hồ sơ + phí thì chỉ lấy hồ sơ + phí/lệ phí + cách thức.
+    - Hỏi ghép vẫn lấy đủ field trong một lần scroll theo thủ tục.
+    """
+    groups = _field_groups_from_query(raw_query, field, procedure_name)
+    if not groups:
+        return _as_field_list(field)
+
+    fields = []
+
+    def add(value):
+        if value and value not in fields:
+            fields.append(value)
+
+    for group in groups[:max(1, MULTI_FIELD_MAX_GROUPS)]:
+        if group == "document":
+            add("Thành phần hồ sơ")
+        elif group == "agency":
+            add("Cơ quan thực hiện")
+        elif group == "time":
+            add("Thời hạn giải quyết")
+            add("Cách thức thực hiện")
+        elif group == "fee":
+            add("Phí")
+            add("Lệ phí")
+            add("Cách thức thực hiện")
+        elif group == "method":
+            add("Cách thức thực hiện")
+        elif group == "result":
+            add("Kết quả thực hiện")
+        elif group == "condition":
+            add("Yêu cầu điều kiện")
+        elif group == "legal":
+            add("Căn cứ pháp lý")
+            add("Cơ quan ban hành")
+            add("Cơ quan phối hợp")
+
+    return fields
+
+
+def _strip_direct_answer_heading(answer: str) -> str:
+    value = _tidy_answer(answer or "")
+    if not value:
+        return ""
+
+    lines = value.splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+
+    if lines:
+        first = lines[0].strip()
+        intro_patterns = [
+            r"^Với thủ tục .+?:$",
+            r"^Với thủ tục .+?, bạn chuẩn bị các giấy tờ chính sau:$",
+            r"^Về phí/lệ phí của thủ tục .+?:$",
+            r"^Thời hạn giải quyết thủ tục .+?:$",
+            r"^Kết quả nhận được của thủ tục .+?:$",
+            r"^Cách thực hiện thủ tục .+?:$",
+            r"^Tôi tìm được thông tin về thủ tục .+?:$",
+        ]
+        if any(re.match(pattern, first, flags=re.IGNORECASE) for pattern in intro_patterns):
+            lines = lines[1:]
+
+    value = "\n".join(lines).strip()
+    value = re.sub(r"\n?Nếu bạn muốn, tôi có thể chỉ tiếp.+$", "", value, flags=re.IGNORECASE | re.DOTALL).strip()
+    return _tidy_answer(value)
+
+
+def _build_multi_field_direct_answer(detected_proc: str, field, context_chunks, raw_query: str = ""):
+    groups = _field_groups_from_query(raw_query, field, detected_proc)
+    if len(groups) < 2:
+        return None
+
+    groups = groups[:max(2, MULTI_FIELD_MAX_GROUPS)]
+    proc = _friendly_proc_name(detected_proc)
+    parts = [f"Với thủ tục {proc}, mình tóm tắt các phần bạn hỏi như sau:", ""]
+    index = 1
+
+    for group in groups:
+        section_answer = None
+        if group == "document":
+            section_answer = _format_document_direct_answer(detected_proc, context_chunks, raw_query=raw_query)
+        elif group == "agency":
+            section_answer = _format_agency_result_direct_answer(detected_proc, context_chunks)
+        elif group == "time":
+            section_answer = _format_time_only_direct_answer(detected_proc, context_chunks)
+        elif group == "fee":
+            section_answer = _format_fee_only_direct_answer(detected_proc, context_chunks)
+        elif group == "method":
+            section_answer = _format_method_only_direct_answer(detected_proc, context_chunks, raw_query=raw_query)
+        elif group == "result":
+            section_answer = _format_result_only_direct_answer(detected_proc, context_chunks)
+
+        section_body = _strip_direct_answer_heading(section_answer or "")
+        if not section_body:
+            continue
+
+        parts.append(f"{index}. {_FIELD_GROUP_LABELS.get(group, 'Thông tin')}: ")
+        parts.append(section_body)
+        parts.append("")
+        index += 1
+
+    if index == 1:
+        return None
+
+    if len(groups) >= MULTI_FIELD_MAX_GROUPS:
+        parts.append("Nếu cần thêm phần khác, bạn cứ hỏi tiếp, mình sẽ chỉ từng phần cho dễ theo dõi.")
+
+    return _tidy_answer("\n".join(parts))
+
+
 def _build_direct_trap_answer(raw_query: str, detected_proc: str, field, context_chunks):
     """
     Trả lời nhanh cho các câu bẫy đơn giản mà không cần gọi LLM.
@@ -2367,13 +3212,9 @@ def _build_direct_trap_answer(raw_query: str, detected_proc: str, field, context
 
     q = raw_query.lower()
 
-    # Chỉ xử lý các bẫy có thể đính chính trực tiếp bằng context.
+    # XỬ LÝ LỖI SAI_06: Loại bỏ "có phải" ra khỏi danh sách kích hoạt bẫy trực tiếp.
+    # Để LLM xử lý các câu hỏi "có phải ... không" hoặc "bắt buộc không" để đảm bảo tính logic và ngữ cảnh.
     trap_markers = [
-        "đúng không",
-        "phải không",
-        "có phải",
-        "có đúng",
-        "phải chờ",
         "bỏ qua",
         "tự bịa",
         "bịa",
@@ -2399,18 +3240,12 @@ def _build_direct_trap_answer(raw_query: str, detected_proc: str, field, context
         )
         return prefix + base_answer
 
-    if any(m in q for m in ["lấy ngày", "ngày ban hành", "cộng", "nhân", "chia"]):
+    math_markers = ["lấy ngày", "ngày ban hành", "cộng thêm", "cộng vào", "nhân với", "chia cho", "tính toán"]
+    if any(m in q for m in math_markers):
         prefix = (
             "Không được tính thời hạn giải quyết bằng cách lấy số hiệu, ngày ban hành "
             "hoặc thông tin văn bản pháp lý để cộng trừ. Thời hạn phải lấy từ mục "
             "thời hạn giải quyết của thủ tục. Thông tin đúng là:\n\n"
-        )
-        return prefix + base_answer
-
-    if any(m in q for m in ["đúng không", "phải không", "có phải", "có đúng", "phải chờ"]):
-        prefix = (
-            "Thông tin trong câu hỏi cần được kiểm tra lại. "
-            "Theo dữ liệu hiện có, thông tin đúng là:\n\n"
         )
         return prefix + base_answer
 
@@ -2455,38 +3290,71 @@ def _build_direct_answer(detected_proc: str, field, context_chunks, raw_query: s
 
     fields = _as_field_list(field)
 
+    # 0. Câu hỏi ghép nhiều ý: trả lời đủ từng mục trong một lần, không gọi LLM.
+    multi_answer = _build_multi_field_direct_answer(
+        detected_proc=detected_proc,
+        field=field,
+        context_chunks=context_chunks,
+        raw_query=raw_query,
+    )
+    if multi_answer:
+        return multi_answer
+
     # 1. Câu hỏi nơi nộp/cơ quan phải ưu tiên cơ quan, dù detect_field có lẫn hồ sơ.
-    if _is_location_question(raw_query):
+    if _is_location_question(raw_query, detected_proc):
         answer = _format_agency_result_direct_answer(detected_proc, context_chunks)
         if answer:
             return answer
 
     # 2. Câu hỏi hồ sơ thì chỉ trả hồ sơ.
-    if _is_document_question(raw_query):
-        answer = _format_document_direct_answer(detected_proc, context_chunks)
+    if _is_document_question(raw_query, detected_proc):
+        answer = _format_document_direct_answer(detected_proc, context_chunks, raw_query=raw_query)
         if answer:
             return answer
 
     # 3. Câu hỏi phí/lệ phí thì chỉ trả phí/lệ phí.
-    if _is_fee_question(raw_query):
+    if _is_fee_question(raw_query, detected_proc):
         answer = _format_fee_only_direct_answer(detected_proc, context_chunks)
         if answer:
             return answer
 
     # 4. Câu hỏi thời hạn thì chỉ trả thời hạn.
-    if _is_time_question(raw_query):
+    if _is_time_question(raw_query, detected_proc):
         answer = _format_time_only_direct_answer(detected_proc, context_chunks)
         if answer:
             return answer
 
+    # 4.1. Câu hỏi cách thức/nộp trực tuyến thì chỉ trả cách thức.
+    if _is_method_question(raw_query, detected_proc):
+        answer = _format_method_only_direct_answer(detected_proc, context_chunks, raw_query=raw_query)
+        if answer:
+            return answer
+
+    # 4.2. Câu hỏi kết quả thì chỉ trả kết quả.
+    if _is_result_question(raw_query, detected_proc):
+        answer = _format_result_only_direct_answer(detected_proc, context_chunks)
+        if answer:
+            return answer
+
+    # 4.3. Câu hỏi điều kiện/bẫy pháp lý không dùng generic direct answer.
+    # Nếu field điều kiện rỗng hoặc chỉ có parent context, phải để LLM đọc toàn thủ tục
+    # và trả lời đúng mức dữ liệu cho phép, tránh tóm tắt lan man cả thủ tục.
+    if _is_condition_field(fields):
+        return None
+
     # 5. Fallback theo field nếu câu hỏi không rõ ý định.
-    if "Cơ quan thực hiện" in fields or "Kết quả thực hiện" in fields:
+    if "Cơ quan thực hiện" in fields:
         answer = _format_agency_result_direct_answer(detected_proc, context_chunks)
         if answer:
             return answer
 
+    if "Kết quả thực hiện" in fields:
+        answer = _format_result_only_direct_answer(detected_proc, context_chunks)
+        if answer:
+            return answer
+
     if "Thành phần hồ sơ" in fields:
-        answer = _format_document_direct_answer(detected_proc, context_chunks)
+        answer = _format_document_direct_answer(detected_proc, context_chunks, raw_query=raw_query)
         if answer:
             return answer
 
@@ -2495,12 +3363,17 @@ def _build_direct_answer(detected_proc: str, field, context_chunks, raw_query: s
         if answer:
             return answer
 
+    if "Cách thức thực hiện" in fields and "Thời hạn giải quyết" not in fields:
+        answer = _format_method_only_direct_answer(detected_proc, context_chunks, raw_query=raw_query)
+        if answer:
+            return answer
+
     if "Thời hạn giải quyết" in fields or "Cách thức thực hiện" in fields:
         answer = _format_time_only_direct_answer(detected_proc, context_chunks)
         if answer:
             return answer
 
-    return _format_generic_direct_answer(detected_proc, context_chunks)
+    return None
 
 
 
@@ -2583,50 +3456,72 @@ def _scroll_docs_by_filter(db, qdrant_filter, limit: int):
         return []
 
 
-def _exact_field_retrieval(db, query: str, detected_proc: str, field):
+def _exact_field_retrieval(db, query: str, detected_proc: str, field, detected_proc_id: str = ""):
     """
-    Fast path v10: đã biết thủ tục + field thì lấy trực tiếp bằng Qdrant scroll.
-    Không embed query, không vector search, không rerank.
+    Fast path tối ưu: đã biết thủ tục + field thì lấy trực tiếp bằng Qdrant scroll.
+
+    Bản procedure-lock:
+    - Ưu tiên khóa bằng procedure_id/id thay vì tên thủ tục.
+    - Scroll theo đúng thủ tục rồi lọc field trong Python.
+    - Fallback vector search vẫn bị khóa trong đúng thủ tục.
+    - Source guard loại mọi chunk khác thủ tục trước khi trả lời.
     """
-    if not detected_proc or not field:
+    if not detected_proc and not detected_proc_id:
+        return []
+    if not field:
         return []
 
     started = time.perf_counter()
-    exact_docs = []
+    fields = _effective_fields_for_retrieval(query, field, detected_proc)
+    fields = [f for f in _as_field_list(fields) if f]
+    if not fields:
+        return []
 
-    for f in field:
-        qdrant_filter = build_qdrant_filter(
-            name=detected_proc,
-            field=f,
-        )
+    wanted_fields = set(fields)
+    scan_limit = max(EXACT_PROC_SCROLL_LIMIT, EXACT_FIELD_K * max(1, len(wanted_fields)) + 12)
 
-        docs_by_field = _scroll_docs_by_filter(
+    proc_docs = _scroll_docs_by_procedure(
+        db=db,
+        procedure_name=detected_proc,
+        procedure_id=detected_proc_id,
+        limit=scan_limit,
+    )
+
+    exact_docs = [
+        doc for doc in proc_docs
+        if (getattr(doc, "metadata", {}) or {}).get("field") in wanted_fields
+    ]
+
+    # Fallback an toàn: nếu scroll không lấy được field nào thì vector search một lần trong đúng thủ tục.
+    if not exact_docs:
+        fallback_started = time.perf_counter()
+        fallback_docs = _similarity_search_by_procedure(
             db=db,
-            qdrant_filter=qdrant_filter,
-            limit=EXACT_FIELD_K,
+            query=query,
+            k=min(scan_limit, max(12, EXACT_FIELD_K * max(1, len(wanted_fields)))),
+            procedure_name=detected_proc,
+            procedure_id=detected_proc_id,
         )
-
-        # Fallback an toàn: nếu scroll lỗi hoặc collection format khác thì quay về similarity_search.
-        if not docs_by_field:
-            fallback_started = time.perf_counter()
-            docs_by_field = db.similarity_search(
-                query,
-                k=EXACT_FIELD_K,
-                filter=qdrant_filter,
-            )
-            fallback_ms = int((time.perf_counter() - fallback_started) * 1000)
-            print(f"[FAST EXACT FALLBACK VECTOR]: field={f} latency_ms={fallback_ms}")
-
-        exact_docs.extend(docs_by_field)
+        fallback_ms = int((time.perf_counter() - fallback_started) * 1000)
+        print(f"[FAST EXACT FALLBACK VECTOR ONCE]: fields={fields} latency_ms={fallback_ms}")
+        exact_docs = [
+            doc for doc in fallback_docs
+            if (getattr(doc, "metadata", {}) or {}).get("field") in wanted_fields
+        ]
 
     if not exact_docs:
         return []
 
+    exact_docs = _guard_docs_by_locked_procedure(
+        exact_docs,
+        procedure_name=detected_proc,
+        procedure_id=detected_proc_id,
+        stage="exact_field_final",
+    )
     exact_docs = _sort_docs_natural(exact_docs)
 
     unique_docs = []
     seen = set()
-
     for doc in exact_docs:
         if doc.page_content in seen:
             continue
@@ -2635,8 +3530,8 @@ def _exact_field_retrieval(db, query: str, detected_proc: str, field):
 
     elapsed_ms = int((time.perf_counter() - started) * 1000)
     print(
-        f"[FAST EXACT SCROLL]: proc='{detected_proc}' "
-        f"field={field} chunks={len(unique_docs)} latency_ms={elapsed_ms}"
+        f"[FAST EXACT PROC SCROLL]: proc='{detected_proc}' proc_id='{detected_proc_id}' "
+        f"fields={fields} chunks={len(unique_docs)} latency_ms={elapsed_ms}"
     )
 
     return unique_docs
@@ -2720,12 +3615,11 @@ def _get_proc_id_by_name(procedure_name: str, docs=None) -> str:
     if docs:
         for doc in docs:
             meta = getattr(doc, "metadata", {}) or {}
-            if meta.get("procedure_id"):
-                return str(meta.get("procedure_id"))
-            if meta.get("id"):
-                return str(meta.get("id"))
+            doc_id = _get_metadata_procedure_id(meta)
+            if doc_id:
+                return doc_id
 
-    return str(PROCEDURE_ID_BY_NAME.get(procedure_name, ""))
+    return _normalize_procedure_id(PROCEDURE_ID_BY_NAME.get(procedure_name, ""))
 
 
 def _build_sources(docs, limit: int = 5):
@@ -2783,17 +3677,37 @@ def build_suggested_questions(procedure_name: str = "", field=None):
 
     display_name = _clean_procedure_display_name(procedure_name)
 
-    pool = [
-        ("Thành phần hồ sơ", f"Hồ sơ cần chuẩn bị cho thủ tục {display_name} gồm những gì?"),
-        ("Thời hạn giải quyết", f"Thời hạn giải quyết thủ tục {display_name} là bao lâu?"),
-        ("Phí", f"Thủ tục {display_name} có mất phí hoặc lệ phí không?"),
-        ("Cơ quan thực hiện", f"Tôi cần nộp thủ tục {display_name} ở đâu?"),
-        ("Cách thức thực hiện", f"Thủ tục {display_name} có thể nộp trực tuyến không?"),
-        ("Kết quả thực hiện", f"Làm xong thủ tục {display_name} sẽ nhận được kết quả gì?"),
+    def is_asked(fields_to_check):
+        return any(f in asked_fields for f in fields_to_check)
+
+    primary_pool = [
+        (["Thành phần hồ sơ"], f"Hồ sơ cần chuẩn bị cho thủ tục {display_name} gồm những gì?"),
+        (["Thời hạn giải quyết"], f"Thời hạn giải quyết thủ tục {display_name} là bao lâu?"),
+        (["Phí", "Lệ phí"], f"Thủ tục {display_name} có mất phí hoặc lệ phí không?"),
+        (["Cơ quan thực hiện"], f"Tôi cần nộp thủ tục {display_name} ở đâu?"),
     ]
 
-    suggestions = [question for field_name, question in pool if field_name not in asked_fields]
-    return suggestions[:3]
+    secondary_pool = [
+        (["Cách thức thực hiện"], f"Thủ tục {display_name} có thể nộp trực tuyến không?"),
+        (["Kết quả thực hiện"], f"Làm xong thủ tục {display_name} sẽ nhận được kết quả gì?"),
+        (["Yêu cầu điều kiện"], f"Cần đáp ứng điều kiện gì để làm thủ tục {display_name}?"),
+        (["Trình tự thực hiện"], f"Trình tự các bước giải quyết thủ tục {display_name} như thế nào?"),
+        (["Đối tượng thực hiện"], f"Ai có thể thực hiện thủ tục {display_name}?"),
+        (["Căn cứ pháp lý", "Cơ quan ban hành", "Cơ quan phối hợp"], f"Thủ tục {display_name} được quy định dựa trên văn bản pháp luật nào?"),
+    ]
+
+    primary_suggestions = [q for f_list, q in primary_pool if not is_asked(f_list)]
+    secondary_suggestions = [q for f_list, q in secondary_pool if not is_asked(f_list)]
+
+    results = []
+    if primary_suggestions:
+        results.extend(random.sample(primary_suggestions, min(2, len(primary_suggestions))))
+        
+    if secondary_suggestions:
+        results.extend(random.sample(secondary_suggestions, min(3 - len(results), len(secondary_suggestions))))
+        
+    random.shuffle(results)
+    return results[:3]
 
 
 def _rag_response(
@@ -2855,30 +3769,48 @@ def _get_session_selected(session_id: str):
         return None
 
 
-def _get_procedure_context_docs(db, procedure_name: str, query: str = "", limit: int = 8):
+def _get_procedure_context_docs(db, procedure_name: str, query: str = "", limit: int = 8, procedure_id: str = ""):
     """
     Lấy parent context Markdown của thủ tục đã chọn.
-    Ưu tiên section_type=procedure_full. Nếu DB chưa build lại theo chunker mới thì fallback về các chunk cùng thủ tục.
+    Ưu tiên procedure_id/id để khóa nguồn, sau đó mới fallback theo tên thủ tục.
     """
-    if not procedure_name:
+    if not procedure_name and not procedure_id:
         return []
 
-    qdrant_filter = build_qdrant_filter(
-        name=procedure_name,
+    docs = _scroll_docs_by_procedure(
+        db=db,
+        procedure_name=procedure_name,
+        procedure_id=procedure_id,
+        limit=limit,
         section_type="procedure_full",
     )
-    docs = _scroll_docs_by_filter(db=db, qdrant_filter=qdrant_filter, limit=limit)
 
     if docs:
         return _sort_docs_natural(docs)
 
     # Fallback khi chưa reload vector DB bằng chunker mới.
-    qdrant_filter = build_qdrant_filter(name=procedure_name)
-    docs = _scroll_docs_by_filter(db=db, qdrant_filter=qdrant_filter, limit=MAX_CONTEXT_CHUNKS)
+    docs = _scroll_docs_by_procedure(
+        db=db,
+        procedure_name=procedure_name,
+        procedure_id=procedure_id,
+        limit=MAX_CONTEXT_CHUNKS,
+    )
 
     if not docs and query:
-        docs = db.similarity_search(query, k=MAX_CONTEXT_CHUNKS, filter=qdrant_filter)
+        docs = _similarity_search_by_procedure(
+            db=db,
+            query=query,
+            k=MAX_CONTEXT_CHUNKS,
+            procedure_name=procedure_name,
+            procedure_id=procedure_id,
+        )
 
+    docs = _guard_docs_by_locked_procedure(
+        docs,
+        procedure_name=procedure_name,
+        procedure_id=procedure_id,
+        stage="procedure_context_final",
+    )
     return _sort_docs_natural(docs)
 
 
@@ -2893,7 +3825,7 @@ def _procedure_candidates_from_scores(proc_scores, limit: int = 5):
     return candidates
 
 
-def ask_rag(db, query, session_id, history=None):
+def ask_rag(db, query, session_id, history=None, procedure_id: str = "", procedure_name: str = ""):
     request_started_at = time.perf_counter()
     history = history or []
 
@@ -2904,8 +3836,27 @@ def ask_rag(db, query, session_id, history=None):
     if not raw_query:
         return _rag_response("Vui lòng nhập câu hỏi.")
 
+    # Request lock: frontend/API có thể truyền thủ tục hiện tại khi người dùng đang ở trang chi tiết.
+    # Giữ tương thích ngược: nếu không truyền thì pipeline chạy theo session/detect như cũ.
+    request_proc_id, request_proc_name = _resolve_locked_procedure(
+        procedure_id=procedure_id,
+        procedure_name=procedure_name,
+    )
+    request_lock_active = bool(request_proc_id or request_proc_name)
+
     selected_context = _get_session_selected(session_id)
     selected_proc_name = (selected_context or {}).get("name") or ""
+    selected_proc_id = _normalize_procedure_id(
+        (selected_context or {}).get("procedure_id")
+        or (selected_context or {}).get("id")
+        or _get_proc_id_by_name(selected_proc_name)
+    )
+
+    if request_proc_id or request_proc_name:
+        print(
+            f"[REQUEST LOCK ACTIVE] request_proc_id={request_proc_id or None} "
+            f"request_proc_name={request_proc_name or None}"
+        )
 
     # 0. Người dùng chỉ xác nhận đã hiểu: không kéo ngữ cảnh cũ ra trả lời tiếp.
     if _is_acknowledgement_query(raw_query):
@@ -2934,19 +3885,47 @@ def ask_rag(db, query, session_id, history=None):
         history_formatted = "LỊCH SỬ HỘI THOẠI:\n(Chưa có)"
 
     # 3. Nhận diện thủ tục và field trên câu hiện tại.
-    # Không dùng history ở bước này, để câu hỏi lệch chủ đề không bị thủ tục cũ kéo vào RAG.
-    explicit_proc = detect_procedure_name(raw_query, history=None, raw_query=raw_query)
-    field_before_rewrite = detect_field(raw_query)
+    # Nếu request đã truyền procedure_id/procedure_name thì khóa luôn thủ tục đó,
+    # không để resolver/vector search kéo sang thủ tục khác.
+    session_lock_active = False
 
+    if request_lock_active:
+        explicit_proc = request_proc_name or _resolve_procedure_name_by_id(request_proc_id)
+        explicit_proc_id = request_proc_id or _get_proc_id_by_name(explicit_proc)
+    else:
+        # Vẫn cho resolver đọc câu hiện tại, nhưng selected_procedure của session
+        # được quyền thắng nếu câu này là follow-up hoặc resolver chỉ đoán yếu.
+        explicit_proc = detect_procedure_name(raw_query, history=None, raw_query=raw_query)
+        explicit_proc_id = _get_proc_id_by_name(explicit_proc)
+
+        field_probe = detect_field(raw_query, procedure_name=selected_proc_name or explicit_proc)
+        if _should_keep_selected_context(
+            raw_query=raw_query,
+            selected_proc_name=selected_proc_name,
+            explicit_proc=explicit_proc,
+            field=field_probe,
+        ):
+            session_lock_active = True
+            explicit_proc = selected_proc_name
+            explicit_proc_id = selected_proc_id or _get_proc_id_by_name(selected_proc_name)
+            print(
+                f"[SESSION LOCK ACTIVE] session_proc_id={explicit_proc_id or None} "
+                f"session_proc_name={explicit_proc or None}"
+            )
+
+    field_before_rewrite = detect_field(raw_query, procedure_name=explicit_proc or selected_proc_name)
+
+    route_explicit_proc = explicit_proc or ("__LOCKED_BY_PROCEDURE_ID__" if request_proc_id else "")
     query_route = _classify_conversation_route(
         raw_query=raw_query,
         selected_proc_name=selected_proc_name,
-        explicit_proc=explicit_proc,
+        explicit_proc=route_explicit_proc,
         field=field_before_rewrite,
     )
     print(
         f"[QUERY ROUTE]: route={query_route} selected={selected_proc_name or None} "
-        f"explicit={explicit_proc or None} field={field_before_rewrite}"
+        f"selected_id={selected_proc_id or None} explicit={explicit_proc or None} "
+        f"explicit_id={explicit_proc_id or None} field={field_before_rewrite}"
     )
 
     # 3.0. Câu hỏi dạng danh sách/đếm nhóm thủ tục.
@@ -2993,17 +3972,29 @@ def ask_rag(db, query, session_id, history=None):
 
     use_selected_context = False
     detected_proc_before_rewrite = explicit_proc
+    detected_proc_id_before_rewrite = explicit_proc_id
 
     # 3.3. Câu nối tiếp hợp lệ: giữ thủ tục đang chọn, không gọi history/Qdrant toàn DB.
     if query_route == ROUTE_CONTINUE_CONTEXT:
         detected_proc_before_rewrite = selected_proc_name
+        detected_proc_id_before_rewrite = selected_proc_id
         use_selected_context = True
-        print(f"[SESSION CONTEXT HIT]: proc={selected_proc_name} field={field_before_rewrite}")
+        print(f"[SESSION CONTEXT HIT]: proc={selected_proc_name} proc_id={selected_proc_id or None} field={field_before_rewrite}")
 
     # 3.4. Câu nêu thủ tục mới/đang đổi thủ tục thì dùng thủ tục trên câu hiện tại.
     if query_route == ROUTE_SWITCH_PROCEDURE:
-        use_selected_context = False
-        detected_proc_before_rewrite = explicit_proc
+        # CHỐT CHẶN: Chỉ switch nếu thủ tục explicit mới có điểm cao hơn đáng kể
+        # hoặc không phải là các từ khóa nhiễu từ câu trước đó.
+        # Nếu frontend đã truyền request lock thì tin request lock, không chặn bằng heuristic cũ.
+        is_nhiu = any(kw in (explicit_proc or "").lower() for kw in ["hợp quy", "tiêu chuẩn"])
+        if is_nhiu and selected_proc_name and not (request_proc_id or request_proc_name):
+            print(f"[SECURITY BLOCK]: Chặn switch nhầm sang {explicit_proc}")
+            detected_proc_before_rewrite = selected_proc_name
+            detected_proc_id_before_rewrite = selected_proc_id
+        else:
+            use_selected_context = False
+            detected_proc_before_rewrite = explicit_proc
+            detected_proc_id_before_rewrite = explicit_proc_id
 
     # 3.5. Chỉ fallback sang history khi câu hiện tại đã có bằng chứng hành chính,
     # không phải ngoài phạm vi và không phải câu hỏi mơ hồ.
@@ -3017,6 +4008,7 @@ def ask_rag(db, query, session_id, history=None):
             history=history,
             raw_query=raw_query,
         )
+        detected_proc_id_before_rewrite = _get_proc_id_by_name(detected_proc_before_rewrite)
 
     # 3.6. Câu điều hướng: "tôi chưa biết làm thế nào", "hướng dẫn tôi..."
     # Nếu có thủ tục đang chọn hoặc câu đã nêu thủ tục, trả lời hướng dẫn ngay, không RAG.
@@ -3059,7 +4051,7 @@ def ask_rag(db, query, session_id, history=None):
         detected_proc=detected_proc_before_rewrite,
         detected_field=field_before_rewrite,
     )
-    if use_selected_context:
+    if use_selected_context or request_lock_active or session_lock_active:
         should_rewrite = False
 
     rewritten = None
@@ -3085,58 +4077,151 @@ CÂU TRUY VẤN TỐI ƯU:"""
     if rewritten:
         query = rewritten
         print(f"[REWRITE]: {query}")
+        # Nếu đã có request/session lock thì không để rewrite kéo sang thủ tục khác.
+        if request_lock_active:
+            detected_proc = request_proc_name or detected_proc_before_rewrite or _resolve_procedure_name_by_id(request_proc_id)
+        elif session_lock_active:
+            detected_proc = selected_proc_name or detected_proc_before_rewrite
+        else:
+            detected_proc = detected_proc_before_rewrite or detect_procedure_name(query, history=history, raw_query=query)
     else:
         query = raw_query
+        if request_lock_active:
+            detected_proc = request_proc_name or detected_proc_before_rewrite or _resolve_procedure_name_by_id(request_proc_id)
+        elif session_lock_active:
+            detected_proc = selected_proc_name or detected_proc_before_rewrite
+        else:
+            detected_proc = detected_proc_before_rewrite or detect_procedure_name(query, history=history, raw_query=raw_query)
+
+    detected_proc_id = (
+        request_proc_id
+        or detected_proc_id_before_rewrite
+        or _get_proc_id_by_name(detected_proc)
+    )
+
+    # Nếu chỉ có mã mà chưa có tên, cố gắng lấy tên để hiển thị/gợi ý.
+    if detected_proc_id and not detected_proc:
+        detected_proc = _resolve_procedure_name_by_id(detected_proc_id)
+
+    # Chốt lần cuối: request lock luôn thắng resolver/session memory.
+    if request_lock_active:
+        detected_proc_id = request_proc_id or detected_proc_id
+        detected_proc = request_proc_name or _resolve_procedure_name_by_id(detected_proc_id) or detected_proc
+        print(
+            f"[REQUEST LOCK FINAL] locked_proc_id={detected_proc_id or None} "
+            f"locked_proc_name={detected_proc or None}"
+        )
+
+    # Chốt lần cuối cho ngữ cảnh phiên: nếu đây là câu follow-up thì selected_procedure
+    # thắng resolver, tránh các lỗi nhảy sang bảo hiểm, đất đai, thiết bị y tế...
+    if session_lock_active and selected_proc_name:
+        detected_proc = selected_proc_name
+        detected_proc_id = selected_proc_id or detected_proc_id or _get_proc_id_by_name(selected_proc_name)
+        use_selected_context = True
+        print(
+            f"[SESSION LOCK FINAL] locked_proc_id={detected_proc_id or None} "
+            f"locked_proc_name={detected_proc or None}"
+        )
 
     llm_query = query
     query = normalize_query(query)
-    detected_proc = detected_proc_before_rewrite or detect_procedure_name(query, history=history, raw_query=raw_query)
-    field = field_before_rewrite or detect_field(query)
+    field = field_before_rewrite or detect_field(query, procedure_name=detected_proc or selected_proc_name)
 
-    # Cache phải gắn với thủ tục đang chọn, nếu không câu "lệ phí bao nhiêu" sẽ bị dùng nhầm giữa các session.
-    query_key = f"{detected_proc or selected_proc_name or ''}::{query.lower().strip()}"
+    # Cache phải gắn với mã/tên thủ tục đang chọn, nếu không câu "lệ phí bao nhiêu" sẽ bị dùng nhầm giữa các session.
+    query_key = f"{detected_proc_id or detected_proc or selected_proc_name or ''}::{query.lower().strip()}"
     cached_answer = _cache_get(query_key)
     if cached_answer:
         return _rag_response(cached_answer, procedure_name=detected_proc or selected_proc_name, field=field)
 
     try:
         print(f"\n===== XỬ LÝ TRUY VẤN: {query} =====")
-        print(f"[DETECTED]: explicit_proc={explicit_proc} detected_proc={detected_proc} field={field}")
+        print(
+            f"[DETECTED]: explicit_proc={explicit_proc} explicit_id={explicit_proc_id or None} "
+            f"detected_proc={detected_proc} detected_id={detected_proc_id or None} field={field}"
+        )
 
         docs = []
         candidates = []
         skip_rerank = False
+        
+        has_hard_lock = request_lock_active or session_lock_active
 
         # 4. Fast path: đã biết thủ tục + field thì chỉ lấy chunk field trong thủ tục đó.
         fast_exact_docs = _exact_field_retrieval(
             db=db,
             query=query,
             detected_proc=detected_proc,
+            detected_proc_id=detected_proc_id,
             field=field,
         )
+
+        parent_fallback_docs = []
+        if detected_proc and field and "Yêu cầu điều kiện" in _as_field_list(field) and not fast_exact_docs:
+            # Field điều kiện trong dữ liệu DVC thường rỗng/"Không có thông tin".
+            # Theo thiết kế gốc: đã biết thủ tục thì kéo parent context toàn thủ tục để đọc sâu trong chính thủ tục đó,
+            # không dừng sớm ở một field rỗng và không nhảy sang thủ tục khác.
+            parent_fallback_docs = _get_procedure_context_docs(
+                db,
+                detected_proc,
+                query=query,
+                limit=MAX_CONTEXT_CHUNKS,
+                procedure_id=detected_proc_id,
+            )
 
         if fast_exact_docs:
             docs = fast_exact_docs
             skip_rerank = True
             print("[RETRIEVAL MODE]: exact field by selected/detected procedure")
 
+        elif parent_fallback_docs:
+            docs = parent_fallback_docs
+            skip_rerank = True
+            print("[RETRIEVAL MODE]: condition field empty -> parent procedure context")
+
         # 4.1. Nếu câu hỏi mơ hồ nhưng đã có thủ tục chính, lấy parent context của thủ tục đó.
         elif detected_proc and (use_selected_context or selected_proc_name == detected_proc):
-            docs = _get_procedure_context_docs(db, detected_proc, query=query)
+            docs = _get_procedure_context_docs(
+                db,
+                detected_proc,
+                query=query,
+                procedure_id=detected_proc_id,
+            )
             skip_rerank = True
             print("[RETRIEVAL MODE]: selected procedure parent context")
 
         else:
-            # 5. Semantic retrieval toàn DB khi chưa đủ context hoặc đang đổi thủ tục.
-            retriever_semantic = db.as_retriever(search_kwargs={"k": RETRIEVAL_SEMANTIC_K})
-            docs_semantic = retriever_semantic.invoke(query)
-            docs.extend(docs_semantic)
-
-            if detected_proc:
-                print(f"[SYSTEM]: Keyword gợi ý thủ tục: {detected_proc}")
-                qdrant_filter = build_qdrant_filter(name=detected_proc)
-                docs_filter = db.similarity_search(query, k=FILTER_SEARCH_K, filter=qdrant_filter)
+            # 5. Retrieval khi chưa đủ context.
+            if has_hard_lock:
+                print(f"[SYSTEM]: Khóa truy hồi theo thủ tục (HARD LOCK): {detected_proc} | id={detected_proc_id or None}")
+                docs_filter = _similarity_search_by_procedure(
+                    db=db,
+                    query=query,
+                    k=RETRIEVAL_SEMANTIC_K,
+                    procedure_name=detected_proc,
+                    procedure_id=detected_proc_id,
+                )
+                if not docs_filter:
+                    docs_filter = _scroll_docs_by_procedure(
+                        db=db,
+                        procedure_name=detected_proc,
+                        procedure_id=detected_proc_id,
+                        limit=EXACT_PROC_SCROLL_LIMIT,
+                    )
                 docs.extend(docs_filter)
+            elif detected_proc or detected_proc_id:
+                print(f"[SYSTEM]: Khóa truy hồi theo thủ tục (SOFT LOCK): {detected_proc} | id={detected_proc_id or None}")
+                docs_filter = _similarity_search_by_procedure(
+                    db=db,
+                    query=query,
+                    k=max(FILTER_SEARCH_K, RETRIEVAL_SEMANTIC_K),
+                    procedure_name=detected_proc,
+                    procedure_id=detected_proc_id,
+                )
+                docs.extend(docs_filter)
+            else:
+                retriever_semantic = db.as_retriever(search_kwargs={"k": RETRIEVAL_SEMANTIC_K})
+                docs_semantic = retriever_semantic.invoke(query)
+                docs.extend(docs_semantic)
 
         # 6. Deduplicate
         unique_docs = []
@@ -3147,9 +4232,42 @@ CÂU TRUY VẤN TỐI ƯU:"""
                 seen_content.add(d.page_content)
         docs = unique_docs
 
+        if has_hard_lock:
+            docs = _guard_docs_by_locked_procedure(
+                docs,
+                procedure_name=detected_proc,
+                procedure_id=detected_proc_id,
+                stage="post_dedup_hard_lock",
+            )
+        elif detected_proc or detected_proc_id:
+            docs = _guard_docs_by_locked_procedure(
+                docs,
+                procedure_name=detected_proc,
+                procedure_id=detected_proc_id,
+                stage="post_dedup",
+            )
+
+        if has_hard_lock and not docs:
+            answer = f"Hiện dữ liệu chưa tìm thấy thông tin phù hợp trong thủ tục {detected_proc or detected_proc_id}."
+            if detected_proc:
+                _save_selected_context(session_id, detected_proc, docs=[], score=1.0, field=field)
+            return _rag_response(answer, procedure_name=detected_proc or selected_proc_name, field=field)
+
         if not docs:
             answer = "Xin lỗi, tôi không tìm thấy thông tin phù hợp trong cơ sở dữ liệu."
+            if detected_proc:
+                _save_selected_context(session_id, detected_proc, docs=[], score=1.0, field=field)
             return _rag_response(answer, procedure_name=detected_proc or selected_proc_name, field=field)
+
+        # CHỐT CHẶN TỐI THƯỢNG: Chỉ lấy tên từ metadata NẾU VÀ CHỈ NẾU doc đó khớp với ID đã bị khóa cứng.
+        # Tuyệt đối không lấy bừa từ chunk top 1 nếu đang search tự do (cả ID và Tên đều đang trống).
+        if not detected_proc and detected_proc_id:
+            for doc in docs:
+                meta = getattr(doc, "metadata", {}) or {}
+                if _same_procedure_id(detected_proc_id, _get_metadata_procedure_id(meta)):
+                    detected_proc = _get_metadata_procedure_name(meta)
+                    if detected_proc:
+                        break
 
         # 7. Rerank nếu cần
         if skip_rerank:
@@ -3187,13 +4305,24 @@ CÂU TRUY VẤN TỐI ƯU:"""
             allowed_proc_names = [p[0] for p in top_procs] if top_procs else ["Thủ tục không xác định"]
             detected_proc = allowed_proc_names[0] if allowed_proc_names[0] != "Thủ tục không xác định" else None
             winner_score = top_procs[0][1] if top_procs else None
-            print(f"[WINNER]: {allowed_proc_names}")
+            
+            # Cập nhật luôn detected_proc_id cho thủ tục vừa chiến thắng để khóa Guardrail Bước 10
+            if detected_proc and not detected_proc_id:
+                detected_proc_id = _get_proc_id_by_name(detected_proc)
+                
+            print(f"[WINNER - BLIND SEARCH]: {allowed_proc_names}")
 
         # 9. Parent-child bổ sung method nếu câu hỏi liên quan thời hạn/phí/cách thức.
         seen_content = {d.page_content for d in docs}
-        if detected_proc and _is_method_related_field(field) and not skip_rerank:
-            qdrant_filter = build_qdrant_filter(name=detected_proc, section_type="method")
-            extra_docs = db.similarity_search(query, k=PARENT_METHOD_K, filter=qdrant_filter)
+        if (detected_proc or detected_proc_id) and _is_method_related_field(field) and not skip_rerank:
+            extra_docs = _similarity_search_by_procedure(
+                db=db,
+                query=query,
+                k=PARENT_METHOD_K,
+                procedure_name=detected_proc,
+                procedure_id=detected_proc_id,
+                section_type="method",
+            )
             for ed in extra_docs:
                 if ed.page_content not in seen_content:
                     ed.metadata['score'] = 0.99
@@ -3203,7 +4332,12 @@ CÂU TRUY VẤN TỐI ƯU:"""
             print(f"[PARENT METHOD SKIP]: field={field}")
 
         # 10. Lọc chunk theo winner và field.
-        final_docs = [d for d in docs if not detected_proc or d.metadata.get("name") == detected_proc]
+        final_docs = _guard_docs_by_locked_procedure(
+            docs,
+            procedure_name=detected_proc,
+            procedure_id=detected_proc_id,
+            stage="before_field_filter",
+        )
         if field:
             field_docs = [d for d in final_docs if d.metadata.get("field") in field]
             if field_docs:
@@ -3212,8 +4346,14 @@ CÂU TRUY VẤN TỐI ƯU:"""
                 print(f"[FIELD FILTER]: Đã ưu tiên các mục {field} lên đầu")
 
         # 10.1 Nếu field rõ mà final_docs chưa đủ, lấy thêm exact field bằng scroll.
-        if detected_proc and field and not skip_rerank:
-            exact_field_docs = _exact_field_retrieval(db, query, detected_proc, field)
+        if (detected_proc or detected_proc_id) and field and not skip_rerank:
+            exact_field_docs = _exact_field_retrieval(
+                db,
+                query,
+                detected_proc,
+                field,
+                detected_proc_id=detected_proc_id,
+            )
             if exact_field_docs:
                 if STRICT_FIELD_CONTEXT:
                     final_docs = _sort_docs_natural(exact_field_docs)
@@ -3221,7 +4361,28 @@ CÂU TRUY VẤN TỐI ƯU:"""
                 else:
                     final_docs = _sort_docs_natural(exact_field_docs + final_docs)
 
+        final_docs = _guard_docs_by_locked_procedure(
+            final_docs,
+            procedure_name=detected_proc,
+            procedure_id=detected_proc_id,
+            stage="final_docs",
+        )
         final_docs = _sort_docs_natural(final_docs)
+
+        if has_hard_lock and not final_docs:
+            answer = f"Hiện dữ liệu chưa có thông tin này trong thủ tục {detected_proc or detected_proc_id}."
+            if detected_proc:
+                _save_selected_context(session_id, detected_proc, docs=[], score=1.0, field=field)
+            return _rag_response(answer, procedure_name=detected_proc or selected_proc_name, field=field)
+
+        if not final_docs:
+            answer = (
+                "Hiện dữ liệu của thủ tục này chưa ghi thông tin phù hợp để trả lời câu hỏi. "
+                "Bạn có thể hỏi lại rõ hơn theo phần hồ sơ, nơi nộp, thời hạn hoặc phí/lệ phí."
+            )
+            if detected_proc:
+                _save_selected_context(session_id, detected_proc, docs=[], score=1.0, field=field)
+            return _rag_response(answer, procedure_name=detected_proc or selected_proc_name, field=field)
 
         seen = set()
         context_chunks = []
@@ -3261,8 +4422,6 @@ CÂU TRUY VẤN TỐI ƯU:"""
         # 12. Direct answer cho câu rõ field, kể cả câu hỏi tiếp theo dạng "thế lệ phí thì sao".
         if ENABLE_DIRECT_ANSWER and detected_proc and field and not _is_trap_like(raw_query):
             direct_answer = _build_direct_answer(detected_proc, field, context_chunks, raw_query=raw_query)
-            if not direct_answer and context_chunks:
-                direct_answer = _format_generic_direct_answer(detected_proc, context_chunks)
 
             if direct_answer:
                 _cache_set(query_key, direct_answer)
@@ -3284,9 +4443,15 @@ LƯU Ý TRẢ LỜI:
 - Chỉ trả lời đúng phần người dùng hỏi.
 - Nếu người dùng hỏi hồ sơ/giấy tờ thì không tự thêm thời hạn, lệ phí, căn cứ pháp lý.
 - Nếu người dùng hỏi thời hạn/lệ phí thì không tự liệt kê toàn bộ hồ sơ.
-- Nếu câu hỏi có giả định sai, hãy đính chính ngắn gọn rồi nêu thông tin đúng.
+- Nếu người dùng hỏi điều kiện, độ tuổi, quan hệ họ hàng hoặc câu hỏi dạng "có được không", hãy tìm trong toàn bộ CONTEXT của chính thủ tục đó.
+- Nếu CONTEXT chỉ ghi "đủ điều kiện theo luật" nhưng không ghi chi tiết điều kiện, phải nói rõ dữ liệu thủ tục chưa ghi chi tiết, không được tự suy ra số tuổi hay phạm vi họ hàng.
+- Không tóm tắt toàn bộ thủ tục khi người dùng hỏi điều kiện; chỉ trả lời điều kiện hoặc nói thiếu dữ liệu điều kiện.
+- Nếu câu hỏi có giả định sai, hãy đính chính ngắn gọn rồi nêu thông tin đúng theo CONTEXT.
 - Nếu đang có thủ tục chính trong phiên, ưu tiên trả lời trong phạm vi thủ tục đó, trừ khi người dùng nêu rõ thủ tục khác.
-
+- Phải ưu tiên thông tin trong CONTEXT trước.
+- ĐỐI VỚI ĐIỀU KIỆN KẾT HÔN/ĐẤT ĐAI: Nếu CONTEXT ghi "quy định pháp luật", bạn ĐƯỢC PHÉP suy luận dựa trên luật hiện hành (Nam từ 20, Nữ từ 18, cấm kết hôn 3 đời, không hôn nhân đồng giới...) để giải đáp cho người dùng, nhưng phải bắt đầu bằng câu "Theo quy định pháp luật...".
+- KHÔNG TỰ BỊA SỐ LIỆU: Nếu hỏi về mốc ngày, phí, nếu CONTEXT Lai Châu không có, hãy báo rõ địa phương chưa ghi nhận, không tự lấy dữ liệu tỉnh khác.
+- Phân biệt rõ các khoảng thời gian không tính vào hạn giải quyết (xác minh nghĩa vụ tài chính, niêm yết công khai, đăng tin...).
 TRẢ LỜI:"""
 
         answer = smart_llm_invoke(prompt)

@@ -25,3 +25,4 @@ vector_store/
 chroma_db/
 faiss_index/
 .pytest_cache/
+file_Mau/
